@@ -321,6 +321,44 @@ options, how to diff a fresh run against results/; a fresh run is byte-identical
 
 ---
 
+## Prompt 15 (Phase 7 validator) (2026-11-11, Claude Code)
+
+> Phase 7: plan validator (src/validator.py), new branch.
+> It must be INDEPENDENT of the planner: it reads plan.json and the raw scenario files, and may use data_loader and cost_model (the model's definition of travel time and P(Blocked)), but NOT search, allocation or simulator. It recomputes travel times by summing edge costs along the given path.
+> validate(plan, scenario, tau) -> (errors, warnings).
+> Errors:
+>  1. schema: a list of objects with exactly responder_id (str), incident_id (str), path (non-empty list of str), time (number >= 0)
+>  2. unknown responder or incident id; an incident assigned more than once
+>  3. responder lacks the required capability
+>  4. path: first node = where the responder is at that moment (start_location for its first job, the previous incident's location afterwards); last node = incident location; every consecutive pair is a directed road; no road with P(Blocked) >= tau; no repeated node
+>  5. time < incident timestamp (clairvoyance) or time < the responder's time_until_available
+>  6. overlap: per responder, sorted by time, each job must start >= previous arrival + previous time_required (recomputed; tolerance 1e-6)
+> Warnings: late arrivals (recomputed arrival > deadline) and incidents missing from the plan (unhandled).
+> Also recompute the four required statistics from plan.json alone and check that they match statistics.txt.
+> run.py validates after writing and prints "plan valid: E errors, W warnings"; exit code 1 if errors.
+> Document the limitation in the module docstring: validity is relative to the BELIEVED road states (tau) and expected travel times, not the true road states.
+> Tests:
+> - the real plans of all 3 scenarios with both policies: 0 errors
+> - fault injection, one test per fault, each must produce exactly the expected error: drop a middle path node; route through small N1->N2 (blocked at tau 0.5); wrong first node; wrong last node; incapable responder; time before the incident timestamp; R4 (small) starting before 10; the same incident twice; two overlapping jobs of one responder; an unknown id; a missing key / wrong type
+> - print a table: fault -> caught (this goes in the report)
+
+**Response:** merged and pushed phase 6 first. src/validator.py (`validate` with coded `Issue`s,
+`check_statistics`), run.py validates the written plan (exit 1 on errors), tests/test_validator.py:
+independence via `ast`, real plans 0 errors with warnings = the planner's late/unhandled, 13 faults
+each caught with exactly the expected error (it had to search for a middle-node drop that removes the
+road, since dropping H1 from I3's path gives the blocked N2→N4). Own planner mutations: ignoring busy
+responders → caught in all scenarios; A* using blocked roads → caught in small and large, not medium
+(no route changes). 82 tests pass.
+**What I did:** accepted after my own review: 82 pass; run.py gives 0 errors with 5 / 1 / 7 warnings
+(exactly the late incidents). Broke the validator itself: forgets the responder moved (18 tests fail),
+no overlap check (2 fail), ignores multipliers (9 fail). Found a blind spot: setting Congested to ×1.0
+in the cost model, the validator still says "valid" with fewer late warnings (1 / 0 / 2), because it
+shares the cost model; 8 hand-checked unit tests fail. Lesson: testing in layers. Also: R1's route to
+the Critical I2 (N1→H1→N2) uses two unreported roads at P(Blocked) = 0.135, so P(both open) =
+0.865² ≈ 0.75: valid under our beliefs, but blocked in about one world in four.
+
+---
+
 <!-- Template for new entries:
 
 ## Prompt N: <topic> (<date time>, <tool>)
