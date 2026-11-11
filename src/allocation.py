@@ -1,23 +1,23 @@
-"""Phase 5: responder allocation as a CSP, solved per round (practicum 1: backtracking, MRV,
+"""@brief Phase 5: responder allocation as a CSP, solved per round (practicum 1: backtracking, MRV,
 forward checking) with branch and bound on a lexicographic objective.
 
 One round = the incidents that become known at time `now` (no clairvoyance).
-  Variables   : this round's incidents.
-  Domains     : responders with the required capability that can reach the incident
+  - Variables : this round's incidents.
+  - Domains   : responders with the required capability that can reach the incident
                 (unary constraints, filtered first; empty domain -> unhandled).
-  Hard        : capability, reachability, a responder does one job at a time (queueing:
-                the next job starts when the previous one finishes, at its location).
-  Soft        : deadlines. Late help is better than no help, so lateness is a PENALTY, never a
+  - Hard      : capability, reachability, one job at a time (queueing: the next job starts when the
+                previous one finishes, at its location).
+  - Soft      : deadlines. Late help is better than no help, so lateness is a PENALTY, never a
                 reason to fail a branch.
-  Objective   : lexicographic (1) Σ priority weight of LATE incidents, (2) Σ (arrival − timestamp).
-
-Limitation: the jobs of one responder are done in the order the search assigns them, and the
-search order is fixed by MRV. The CSP is therefore not exhaustive over every job order.
+  - Objective : lexicographic (1) Σ priority weight of LATE incidents, (2) Σ (arrival - timestamp).
 
 Because the assignment order also fixes the job order of a shared responder, MRV here affects the
 QUALITY of the solution, not only the speed (in a classical CSP variable order only changes speed).
 Without MRV (plain id order) medium t=0 gets worse: R10 does I2 before I3, and the Critical I3
 arrives late at 41.6 s (late weight 8 instead of 4).
+
+@note Limitation: the jobs of one responder are done in the order the search assigns them, and the
+search order is fixed by MRV, so the CSP is not exhaustive over every job order.
 """
 from __future__ import annotations
 
@@ -38,12 +38,28 @@ Objective = tuple[float, float]  # (late weight, total response time)
 
 @dataclass(frozen=True)
 class ResponderState:
+    """@brief Where a responder is and when it can start its next job.
+
+    @par Fields
+    - location: node id (start location, or the location of its last incident).
+    - free_at: absolute time (s) at which the responder can start a new job.
+    """
     location: str
     free_at: float  # absolute time (s) at which the responder can start a new job
 
 
 @dataclass(frozen=True)
 class Assignment:
+    """@brief One responder assigned to one incident.
+
+    @par Fields
+    - responder_id, incident_id: the pair.
+    - path: route from the responder's location to the incident.
+    - start: time the responder leaves (the plan's "time").
+    - arrival: start + expected travel time.
+    - finish: arrival + time_required; the responder is then free at the incident location.
+    - late: arrival > deadline.
+    """
     responder_id: str
     incident_id: str
     path: tuple[str, ...]
@@ -55,6 +71,14 @@ class Assignment:
 
 @dataclass(frozen=True)
 class AllocationStats:
+    """@brief Search statistics of one round.
+
+    @par Fields
+    - nodes: assignments tried (search nodes).
+    - hit_limit: True if the node limit was reached (best solution found so far returned).
+    - late_weight: Σ priority weights of late (or forced-missed) incidents of the chosen plan.
+    - response_time: Σ (arrival - timestamp) of the chosen plan.
+    """
     nodes: int  # assignments tried (search nodes)
     hit_limit: bool  # True -> node limit reached, best solution found so far returned
     late_weight: float
@@ -65,32 +89,56 @@ AllocationResult = tuple[list[Assignment], list[str], dict[str, ResponderState],
 
 
 def id_key(identifier: str) -> tuple[str, int]:
-    """Natural order for ids: I2 < I10 (plain string order would put I10 first)."""
+    """@brief Natural sort key for ids, so I2 sorts before I10.
+    @param identifier An id such as "I10" or "R2".
+    @return (prefix, number), or (identifier, 0) if it has no number.
+    """
     m = re.fullmatch(r"(\D*)(\d+)", identifier)
     return (m.group(1), int(m.group(2))) if m else (identifier, 0)
 
 
 def initial_states(scenario: Scenario) -> dict[str, ResponderState]:
+    """@brief Responder states at t = 0: start location and time_until_available.
+    @param scenario The scenario.
+    @return Responder id -> ResponderState.
+    """
     return {r.id: ResponderState(r.start_location, r.time_until_available) for r in scenario.responders}
 
 
 class _Planner:
-    """Shared helpers for the CSP and the greedy baseline (routes are cached per round)."""
+    """@brief Helpers shared by the CSP and the greedy baseline for one round (routes are cached)."""
 
     def __init__(self, scenario: Scenario, costs: dict[Edge, EdgeCost], now: float) -> None:
+        """@brief Create a planner for the round at time `now`.
+        @param scenario The scenario.
+        @param costs Edge costs.
+        @param now Time of the round (s).
+        """
         self.scenario = scenario
         self.costs = costs
         self.now = now
         self._routes: dict[tuple[str, str], tuple[list[str], float] | None] = {}
 
     def route(self, a: str, b: str) -> tuple[list[str], float] | None:
+        """@brief Cached A* route from a to b.
+        @param a Start node id.
+        @param b Goal node id.
+        @return (path, travel time in s), or None if unreachable.
+        """
         if (a, b) not in self._routes:
             res = astar(self.scenario, self.costs, a, b)
             self._routes[(a, b)] = None if res is None else (res[0], res[1])
         return self._routes[(a, b)]
 
     def option(self, inc: Incident, rid: str, st: ResponderState) -> Assignment | None:
-        """Assign responder rid (in state st) to inc. None if it cannot reach the incident."""
+        """@brief The assignment that results from sending responder rid (in state st) to an incident.
+
+        start = max(now, free_at) (queueing), arrival = start + A* time, finish = arrival + time_required.
+        @param inc The incident.
+        @param rid The responder id.
+        @param st The responder's current state in this branch.
+        @return The Assignment, or None if the responder cannot reach the incident.
+        """
         r = self.route(st.location, inc.location)
         if r is None:
             return None
@@ -103,7 +151,11 @@ class _Planner:
     def domains(
         self, incidents: Sequence[Incident], states: dict[str, ResponderState]
     ) -> dict[str, list[str]]:
-        """Unary constraints: capability + reachable from the responder's current location."""
+        """@brief Unary constraints: capability and reachability from the responder's current location.
+        @param incidents The round's incidents.
+        @param states Current responder states.
+        @return Incident id -> ids of the responders in its domain.
+        """
         return {
             inc.id: [
                 r.id for r in self.scenario.responders
@@ -115,7 +167,12 @@ class _Planner:
 
 
 def _apply(states: dict[str, ResponderState], a: Assignment, location: str) -> dict[str, ResponderState]:
-    """After a job the responder stays at the incident location until `finish` (decision 8)."""
+    """@brief New states after an assignment: the responder waits at the incident until `finish` (decision 8).
+    @param states Current responder states.
+    @param a The assignment.
+    @param location The incident location.
+    @return A new state dict (the input is not modified).
+    """
     return {**states, a.responder_id: ResponderState(location, a.finish)}
 
 
@@ -128,9 +185,22 @@ def allocate(
     node_limit: int = NODE_LIMIT,
     prune: bool = True,
 ) -> AllocationResult:
-    """Solve ONE round with backtracking + MRV + forward checking + branch and bound.
+    """@brief Solve ONE round with backtracking + MRV + forward checking + branch and bound.
 
-    prune=False switches branch and bound off (same answer, more nodes); only used by tests.
+    Forward checking recomputes every remaining incident's ON-TIME set after each assignment. An empty
+    set does not fail the branch (deadlines are soft): its weight is added to a lower bound, and the
+    branch is pruned when (bound, response time so far) ≥ the best plan found. The bound is valid
+    because extra jobs only make a responder free later and elsewhere, which by the triangle
+    inequality of shortest paths never makes it arrive earlier.
+    @param scenario The scenario.
+    @param costs Edge costs.
+    @param now Time of the round (s).
+    @param incidents The incidents that become known at `now`.
+    @param states Responder states at the start of the round.
+    @param node_limit Maximum search nodes; if hit, the best plan found so far is used (or greedy if
+           no complete plan was found yet).
+    @param prune False switches branch and bound off (same answer, more nodes); used by tests only.
+    @return (assignments, unhandled incident ids, new responder states, AllocationStats).
     """
     planner = _Planner(scenario, costs, now)
     domains = planner.domains(incidents, states)
@@ -143,6 +213,7 @@ def allocate(
     hit_limit = False
 
     def on_time(inc: Incident, sts: dict[str, ResponderState]) -> list[Assignment]:
+        """@brief Assignments of `inc` that arrive on time, given the branch's responder states."""
         opts = (planner.option(inc, rid, sts[rid]) for rid in domains[inc.id])
         return [a for a in opts if a is not None and not a.late]
 
@@ -150,6 +221,7 @@ def allocate(
         unassigned: list[Incident], sts: dict[str, ResponderState],
         chosen: list[Assignment], skipped: list[str], late_w: float, resp: float,
     ) -> None:
+        """@brief Recursive backtracking over the unassigned incidents of one branch."""
         nonlocal best_obj, best, nodes, hit_limit
         if hit_limit:
             return
@@ -211,7 +283,14 @@ def greedy(
     incidents: Sequence[Incident],
     states: dict[str, ResponderState],
 ) -> AllocationResult:
-    """Baseline: incidents in id order, each gets the capable responder that arrives earliest."""
+    """@brief Baseline: incidents in id order, each gets the capable responder that arrives earliest.
+    @param scenario The scenario.
+    @param costs Edge costs.
+    @param now Time of the round (s).
+    @param incidents The round's incidents.
+    @param states Responder states at the start of the round.
+    @return Same format as allocate (nodes = one decision per incident).
+    """
     planner = _Planner(scenario, costs, now)
     sts = dict(states)
     assignments: list[Assignment] = []

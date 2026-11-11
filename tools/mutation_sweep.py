@@ -1,10 +1,10 @@
-"""Mutation sweep: does the test suite catch typical bugs in EVERY module?
+"""@brief Mutation sweep: does the test suite catch typical bugs in EVERY module?
 
-Usage:  python tools/mutation_sweep.py            (about a minute)
+Usage:  python tools/mutation_sweep.py   (about 25 seconds)
 
 For each mutant (one small, realistic bug) the project is copied to a temporary folder, the bug is
 applied to the copy, and the whole test suite runs there. A mutant is CAUGHT ("killed") if at least
-one test fails. A mutant that survives means a bug of that kind would go unnoticed: a gap in the tests.
+one test fails; a surviving mutant means a bug of that kind would go unnoticed (a gap in the tests).
 The real source files are never modified, and no bytecode cache is written (no stale .pyc problems).
 Each mutation's text must occur exactly once in its file, otherwise the sweep reports an error
 instead of silently testing nothing.
@@ -25,6 +25,14 @@ COPY = ["src", "tests", "run.py", "pyproject.toml", "Scenarios"]
 
 @dataclass(frozen=True)
 class Mutant:
+    """@brief One injected bug.
+
+    @par Fields
+    - file: file to mutate, relative to the project root.
+    - old: exact source text to replace (must occur exactly once).
+    - new: replacement text (the bug).
+    - bug: description printed in the report.
+    """
     file: str
     old: str
     new: str
@@ -120,6 +128,9 @@ MUTANTS: list[Mutant] = [
 
 
 def _copy_project(dest: Path) -> None:
+    """@brief Copy the files needed to run the tests into a temporary folder.
+    @param dest Destination folder.
+    """
     for name in COPY:
         src = ROOT / name
         if src.is_dir():
@@ -129,7 +140,10 @@ def _copy_project(dest: Path) -> None:
 
 
 def _run_tests(cwd: Path) -> tuple[bool, str]:
-    """Returns (all tests passed, last line of the output)."""
+    """@brief Run the whole test suite in a folder.
+    @param cwd The (temporary) project folder.
+    @return (all tests passed, last line of the pytest output); a timeout counts as caught.
+    """
     env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
     env.pop("RUN_MUTATION_SWEEP", None)  # never let the copied suite start another sweep
     try:
@@ -142,6 +156,9 @@ def _run_tests(cwd: Path) -> tuple[bool, str]:
 
 
 def main() -> int:
+    """@brief Run the sweep and print one line per mutant.
+    @return Exit code 0 if every mutant is caught, 1 otherwise.
+    """
     with tempfile.TemporaryDirectory(prefix="mutation-sweep-") as tmp:
         work = Path(tmp)
         _copy_project(work)

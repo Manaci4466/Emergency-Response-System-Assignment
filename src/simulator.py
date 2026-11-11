@@ -1,4 +1,4 @@
-"""Phase 6a: online simulation, one allocation round per incident timestamp.
+"""@brief Phase 6a: online simulation, one allocation round per incident timestamp.
 
 No clairvoyance: a round at time t only sees the incidents with timestamp == t and the current
 responder states. Assignments are committed immediately (decision 7); a later, more urgent incident
@@ -20,6 +20,13 @@ POLICIES = {"csp": allocate, "greedy": greedy}
 
 @dataclass(frozen=True)
 class RoundStats:
+    """@brief Statistics of one simulation round.
+
+    @par Fields
+    - time: the round's time (s).
+    - incident_ids: the incidents of the round.
+    - nodes, hit_limit, late_weight, response_time: copied from AllocationStats.
+    """
     time: float
     incident_ids: tuple[str, ...]
     nodes: int
@@ -30,6 +37,14 @@ class RoundStats:
 
 @dataclass(frozen=True)
 class SimulationResult:
+    """@brief Result of a complete simulation.
+
+    @par Fields
+    - policy, tau, unobserved_traffic: the settings used.
+    - assignments: all assignments of all rounds.
+    - unhandled: ids of incidents nobody could reach.
+    - rounds: per-round statistics.
+    """
     policy: str
     tau: float
     unobserved_traffic: float
@@ -39,12 +54,17 @@ class SimulationResult:
 
     @property
     def limit_rounds(self) -> list[float]:
-        """Times of the rounds in which the CSP hit its node limit (best plan found so far used)."""
+        """@brief Times of the rounds in which the CSP hit its node limit.
+        @return List of round times (empty in the provided scenarios).
+        """
         return [r.time for r in self.rounds if r.hit_limit]
 
 
 def rounds_by_time(incidents: list[Incident]) -> list[tuple[float, list[Incident]]]:
-    """Group incidents by timestamp, in ascending time order."""
+    """@brief Group incidents by timestamp, in ascending time order (ids in natural order).
+    @param incidents All incidents of the scenario.
+    @return List of (time, incidents of that time).
+    """
     groups: dict[float, list[Incident]] = defaultdict(list)
     for inc in incidents:
         groups[inc.timestamp].append(inc)
@@ -55,6 +75,16 @@ def simulate(
     scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0, policy: str = "csp",
     unreported: str = "prior", node_limit: int = NODE_LIMIT,
 ) -> SimulationResult:
+    """@brief Run the whole scenario round by round.
+    @param scenario The scenario.
+    @param tau Blocked threshold.
+    @param unobserved_traffic Multiplier for roads without traffic observations.
+    @param policy "csp" or "greedy".
+    @param unreported "prior" or "open" (see cost_model.edge_costs).
+    @param node_limit CSP node limit per round.
+    @return The SimulationResult.
+    @exception ValueError For an unknown policy.
+    """
     if policy not in POLICIES:
         raise ValueError(f"unknown policy {policy!r}, choose from {sorted(POLICIES)}")
     solve = POLICIES[policy]

@@ -1,9 +1,9 @@
-"""Phase 2: Bayesian road status (Notes 6, inference by enumeration).
+"""@brief Phase 2: Bayesian road status (Notes 6, inference by enumeration).
 
 Network per directed road:   Weather -> Status -> {Citizen, Police, Sensor}
-  query    : Status S (Open / Congested / Blocked)
-  evidence : the reports, and the weather if it was reported
-  hidden   : the weather when it is NOT reported (summed out with the prior)
+  - query    : Status S (Open / Congested / Blocked)
+  - evidence : the reports, and the weather if it was reported
+  - hidden   : the weather when it is NOT reported (summed out with the prior)
 
 S is each report's ONLY parent and there are no edges between the reports, so the reports are
 conditionally independent given S and their likelihoods can simply be multiplied:
@@ -18,7 +18,11 @@ from src.data_loader import Edge, RoadModel, RoadReport, Scenario
 
 
 def normalise(dist: dict[str, float]) -> dict[str, float]:
-    """Divide by the total so the values sum to 1 (this is the '∝' step)."""
+    """@brief Divide by the total so the values sum to 1 (the '∝' step).
+    @param dist Unnormalised non-negative values.
+    @return The normalised distribution.
+    @exception ValueError If all values are zero.
+    """
     total = sum(dist.values())
     if total <= 0:
         raise ValueError(f"cannot normalise, all probabilities are zero: {dist}")
@@ -26,7 +30,14 @@ def normalise(dist: dict[str, float]) -> dict[str, float]:
 
 
 def status_prior(model: RoadModel, weather: str | None) -> dict[str, float]:
-    """P(S | w) if the weather is observed, else P(S) = Σ_w P(w) · P(S | w) (sum out weather)."""
+    """@brief Prior over the road status, before the reports are used.
+
+    If the weather is observed this is the table row P(S | w); otherwise the weather is summed out:
+    P(S) = Σ_w P(w) · P(S | w), which gives Open 0.685, Congested 0.18, Blocked 0.135 (decision 2).
+    @param model The Bayes-net tables.
+    @param weather Observed weather, or None if unknown.
+    @return Status -> probability.
+    """
     if weather is not None:
         return dict(model.status_given_weather[weather])
     statuses = next(iter(model.status_given_weather.values())).keys()
@@ -39,10 +50,14 @@ def status_prior(model: RoadModel, weather: str | None) -> dict[str, float]:
 def status_posterior(
     model: RoadModel, weather: str | None, reports: Sequence[RoadReport]
 ) -> dict[str, float]:
-    """P(S | weather, reports) ∝ P(S | weather) · Π P(report | S), normalised.
+    """@brief Posterior P(S | weather, reports) ∝ P(S | weather) · Π P(report | S), normalised.
 
-    weather=None -> weather is hidden and summed out with the prior.
-    Any subset of sources may be present (a missing source just contributes no factor).
+    Any subset of sources may be present: a missing source simply contributes no factor.
+    @param model The Bayes-net tables (report CPTs: outer key = TRUE status).
+    @param weather Observed weather, or None to sum it out with the prior.
+    @param reports The reports for this road.
+    @return Status -> posterior probability.
+    @note Example: small N1->N2 (Rain; Blocked, Blocked, Congested) gives O 0.014, C 0.459, B 0.527.
     """
     unnormalised = status_prior(model, weather)
     for report in reports:
@@ -53,10 +68,12 @@ def status_posterior(
 
 
 def road_status_beliefs(scenario: Scenario) -> dict[Edge, dict[str, float]]:
-    """Posterior status for EVERY directed road.
+    """@brief Posterior status for EVERY directed road of the scenario.
 
-    Reported road: weather comes from its reports (the loader guarantees they agree).
-    Unreported road: no weather, no reports -> prior marginal P(S).
+    A reported road takes its weather from its reports (the loader guarantees they agree); an
+    unreported road has no weather and no reports and gets the prior marginal P(S).
+    @param scenario The loaded scenario.
+    @return (from, to) -> status distribution.
     """
     beliefs: dict[Edge, dict[str, float]] = {}
     for edge in scenario.roads:
