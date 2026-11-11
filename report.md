@@ -85,6 +85,20 @@ straight line between its ends, no road is faster than 30 m/s and all multiplier
 consistent by the triangle inequality, which makes graph search with a closed set optimal. At τ = 0.5
 the medium map splits into two halves, because the only connecting road N1↔N2 has P(Blocked) = 0.83.
 
+**CSP allocation (`allocation.py`, practicum 1).** Each round (the incidents that become known at time
+t) is a CSP: the variables are the incidents, the domains the capable responders that can reach them,
+and busy responders are queued at their last incident. Deadlines are soft: an incident with no on-time
+responder left in a branch does not fail the branch but adds its priority weight (Critical 8, High 4,
+Medium 2, Low 1) to a lower bound, used by branch and bound on the lexicographic objective (late weight,
+then total response time). MRV assigns the incident with the fewest on-time responders first. Because
+the assignment order also fixes the job order of a shared responder, MRV here changes the *answer*, not
+only the speed: without it, medium t = 0 lets R10 do I2 before the Critical I3 (late weight 8 instead
+of 4). The bound is only valid because A\* returns true shortest paths (triangle inequality), which in
+turn relies on the admissible heuristic: admissible h → optimal paths → valid bound → correct branch
+and bound. On small t = 0 the CSP misses weight 12 against 16 for the greedy baseline, which lets I1
+take R2, the only responder that can reach the Critical I4 on time. Limitation: the job order of one
+responder follows the search order, so the CSP is not exhaustive over all job orders.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -114,6 +128,8 @@ the medium map splits into two halves, because the only connecting road N1↔N2 
 | Phase 3: HMM + stationary-distribution test (Prompt 8) | Its first test demanded 10⁻⁹ after 50 predict steps and **failed**; fixed with tolerance 10⁻⁶, justified by "2nd eigenvalue ≈ 0.7" | **Modified** (Prompt 9): mutation testing (4 typical HMM bugs) showed a transition before observation 1 passed every test, so I added a one-observation test; corrected the eigenvalue to 0.742 (0.742⁵⁰ ≈ 3·10⁻⁷) | The HMM forgets its start (umbrella prior is already stationary; 10 observations wash it out), so the P(X₁) convention needed a targeted test; a plausible LLM number did not check out |
 | Phase 4: A\* + tests (Prompt 9) | A\* and UCS share one search function; the only optimality check was "A\* = UCS" | **Modified** (Prompt 10): my mutation test showed a road-cost bug inside the shared function passed in all 3 scenarios; added differential tests (path cost recomputed from its roads + independent Floyd–Warshall) | Two programs sharing code fail the same way, so comparing them proves little; the mutant is now caught in every scenario |
 | Committing phase 4 | Ran `pytest \| tail && git commit`: committed while 7 tests failed | **LLM process error, caught and explained**: the pipe hides pytest's exit code; the failures came from a stale `.pyc` left by its own mutation check (same second, same file size). It verified the committed code was correct, cleared the cache and now commits only on pytest's own exit code | An LLM's process needs checking too, not only its code |
+| Phase 5 test numbers from the reviewing LLM (Prompt 11) | Reviewer predicted greedy would leave the Critical I4 to R4 (arrival 147.4) | **Collaboration in both directions**: the implementing LLM checked the numbers against the cost model before writing tests and found greedy queues R2 behind I1 (arrival 89.6, still late); the tests use the verified value | The reviewing LLM's prediction was wrong; it was caught by verifying instead of trusting it |
+| Phase 5 mutation testing (Prompts 11–12) | An over-strong pruning bound and removing pruning both passed every test, brute force included | **Modified**: hand-made assignment trap (first solution 11 s, optimum 4 s) and a `prune=False` comparison (28 vs 202 nodes on large); the reviewing LLM's suggested "CSP < brute force" assertion sounded reasonable but tested the wrong thing (11 / 7 / 202 nodes even without pruning, because brute force counts every incident order) | On the real rounds the first plan found is already optimal, so pruning bugs are invisible without targeted tests |
 
 ## Testing & results
 
@@ -151,6 +167,13 @@ the medium map splits into two halves, because the only connecting road N1↔N2 
 | Hand-made graph: shortest in metres ≠ fastest; unreachable goal | A\* takes the faster 30 m/s detour; `None` | pass |
 | Mutation: inadmissible h (15 m/s) | consistency/straight-line tests fail in all scenarios; A\* = UCS only on large | caught |
 | Mutation: some roads costed wrong inside the shared search | before: only the hand-made graph; after differential tests: all 3 scenarios | caught |
+| CSP small t = 0: I4→R2 56.4 on time, I1→R4 81.1 late, I2→R1 (N1→H1→N2) 92.2 late, I3→R3 131.2 | late weight 12; greedy 16 (R2 queued for I4, 89.6) | pass |
+| CSP medium t = 0: I3→R10 at 0, I2→R10 queued (start 10, arrival 20.78, late); R9 cannot reach the N2 side | as expected | pass |
+| Capability nobody has | unhandled; the other incidents still assigned | pass |
+| CSP = brute force (all orders × all choices), t = 0 | nodes 7 / 7 / 28 vs 96 / 1,440 / 15,360 plans | pass |
+| Assignment trap (first solution not optimal) | CSP 4 s, greedy 11 s | pass |
+| Pruning on vs off | same answer; nodes 7 vs 11 (small), 28 vs 202 (large) | pass |
+| Mutations: no MRV / busy ignored / handling time ignored / over-strong bound / no pruning | all caught (the last two only after the targeted tests) | caught |
 
 Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
 only comparing them with each other, every returned path is re-costed from its roads and compared with an
