@@ -1,331 +1,159 @@
 # Emergency Response Decision-Support System
 
-<!-- TITLE PAGE (does not count toward the 3 pages)
-     - Your name, course (Artificial Intelligence, UAntwerpen), date 12/11/2026
-     - The GitHub link, big and visible: **Repository: https://github.com/<you>/<repo>**
-     - Before submitting, invite nick.wils@uantwerpen.be and lowie.rombouts@uantwerpen.be to the repo. -->
-**Full Name:** Manasseh Ophalfens
+<!-- Before submitting, invite nick.wils@uantwerpen.be and lowie.rombouts@uantwerpen.be to the repo. -->
+**Manasseh Ophalfens** (s0231648) · Artificial Intelligence, UAntwerpen · 12/11/2026
 
-**student number:** s0231648
+**Repository: https://github.com/Manaci4466/Emergency-Response-System-Assignment**
 
-
-**Repository:** https://github.com/Manaci4466/Emergency-Response-System-Assignment
-
----
+<!-- Title page (does not count towards the 3 content pages). -->
+<div style="page-break-after: always"></div>
 
 ## Approach & implementation
 
-<!-- BUDGET: ~1.2 pages (~600 words + 1 small figure + 1 table).
-     OPENING SENTENCE = the whole system in one line. Rewrite this in your own words, e.g.:
-     "The system turns noisy road reports and historic traffic data into expected travel times,
-      finds routes with A*, and assigns responders online with a constraint solver each time new
-      incidents become known."
+The system turns noisy road reports and historical traffic observations into expected travel times,
+finds routes with A\*, and assigns responders with a constraint solver each time new incidents become
+known (`run.py` → `plan.json`, `statistics.txt`, then an independent validation). Roads are
+**directed**: A→B and B→A never share reports or observations.
 
-     Then ONE paragraph per component. Each paragraph follows the same pattern:
-       theory (1 sentence) -> where it is in the code (function name) -> the assumption -> its consequence.
+**Bayesian road model** (`bayes.py`, Notes 6). Each road is a network Weather → Status →
+{Citizen, Police, Sensor}, solved by enumeration: P(S | w, r) ∝ P(S|w)·Π P(rᵢ|S). The reports may be
+multiplied because Status is their only parent (conditionally independent given S); P(w) is the same
+for every status and cancels in the normalisation. For unreported roads the weather is summed out,
+giving the prior Open 0.685 / Congested 0.18 / Blocked 0.135. Example: small N1→N2 (Rain; Blocked,
+Blocked, Congested) gets P(Blocked) = 0.527, so it is avoided, while N2→N1 (all Congested) stays open.
 
-     1. Bayesian road model (bayes.py, Notes 6)
-        - Network: Weather -> Status -> {Citizen, Police, Sensor}. Inference by enumeration.
-        - Why the reports can be multiplied: conditionally independent given Status.
-        - Why P(Weather) drops out: weather is observed, so it is a constant that normalisation removes.
-        - Unreported roads: weather unknown, so sum it out -> P(Blocked) = 0.135 (decision 2).
-        - Give ONE worked number: N1->N2 (small) -> P(Blocked) = 0.527.
-     2. HMM traffic model (hmm.py, Notes 8)
-        - Hidden = true traffic level, evidence = observed level, forward algorithm + one prediction step.
-        - Why forward and not Viterbi (current state vs most likely history).
-        - Your multipliers (Low 1.0 / Medium 1.25 / High 1.5) and WHY you chose them.
-     3. Cost model + A* (cost_model.py, search.py)
-        - Edge time formula, threshold tau.
-        - Heuristic = straight-line distance / 30 m/s; one sentence proving admissible + consistent
-          (road distance >= straight line on every road; multipliers >= 1).
-     4. CSP allocation (allocation.py)
-        - Variables, domains, constraints (capability, reachability, no overlap), soft deadlines.
-        - MRV + forward checking + branch and bound; what the objective is.
-        - Online: incidents are only solved when their timestamp is reached; assignments are committed.
+**HMM traffic model** (`hmm.py`, Notes 8). Hidden state = true traffic level, evidence = observed
+level. The forward algorithm alternates time elapse and observation and normalises every step (no
+underflow). We filter instead of running Viterbi because planning needs the *current* level, not the
+most likely history. Traffic "now" = filtered belief + one prediction step, turned into an expected
+multiplier (Low 1.0, Medium 1.25, High 1.5; unobserved roads ×1.0).
 
-     FIGURE: export the architecture diagram from the guide doc (small, ~1/4 page).
-     TABLE: the 10 design decisions condensed to 3 columns: Decision | Choice | Consequence.
-     Use the doc's table but cut every cell to <= 10 words. -->
+**Cost model and A*** (`cost_model.py`, `search.py`, practicum 1). Expected time = distance/speed ×
+status multiplier (P(O)·1 + P(C)·1.5)/(P(O)+P(C)) × traffic multiplier; a road is unusable if
+P(Blocked) ≥ τ = 0.5. A\* (graph search, closed set) uses h = straight-line distance / fastest road
+speed: admissible because every road is at least as long as the straight line and every multiplier
+is ≥ 1, consistent by the triangle inequality (so the closed set is safe). The program checks the first
+premise on the data and falls back to h = 0 (uniform-cost search) if it fails.
 
-**Data model (`data_loader.py`).** All scenario files are parsed into immutable, typed dataclasses and
-checked once at load time: every probability row must sum to one, every road, responder and incident
-must refer to an existing node, and all reports for one road must agree on the weather (weather is a
-single evidence variable per road in the Bayes net). Roads are stored by their directed `(from, to)`
-key, so reports and traffic observations for A→B and B→A are never mixed. The CPTs keep the
-orientation of the input files (outer key = true state), so the Bayes and HMM code reads directly
-like the formulas in Notes 6 and 8.
-
-**Bayesian road model (`bayes.py`, Notes 6).** Each directed road is a small Bayesian network
-Weather → Status → {Citizen, Police, Sensor}, solved by enumeration in `status_posterior`. Because the
-reports are conditionally independent given the true status, their likelihoods multiply:
-P(S | w, r) ∝ P(S|w)·Π P(rᵢ|S). When the weather is observed, P(w) is the same for every status and
-cancels in the normalisation; for unreported roads the weather is hidden and summed out, giving the
-prior marginal (Open 0.685, Congested 0.18, Blocked 0.135). For example, N1→N2 in the small scenario
-(Rain; reports Blocked, Blocked, Congested) gets P(Blocked) = 0.527: just above τ = 0.5, so this road
-is avoided while its reverse direction (all reports Congested) stays usable.
-
-**HMM traffic model (`hmm.py`, Notes 8).** Traffic on each directed road is a hidden Markov model:
-the hidden state is the true traffic level, the evidence the observed level. The forward algorithm
-(`forward`) alternates a time-elapse step through the transition model with an observation step that
-weights by the emission model and normalises; normalising every step prevents underflow, and the
-product of the normalisers is the likelihood P(e₁..eₙ). We filter rather than run Viterbi because
-planning needs the distribution of the *current* traffic level, not the most likely history. Traffic
-"now" is the filtered belief plus one prediction step, turned into an expected multiplier
-(Low 1.0, Medium 1.25, High 1.5); e.g. small N4→H1 has P(High) = 0.548, multiplier 1.36. Predicting
-further ahead converges to the stationary distribution (45, 49, 33)/127, so beliefs lose their
-road-specific information. Because observation_nr has no time unit, the t = 0 belief is used for the
-whole simulation, which is likely overconfident for late incidents.
-
-**Cost model + A\* (`cost_model.py`, `search.py`, practicum 1).** The expected travel time of a road
-is distance/speed × status multiplier × traffic multiplier, where the status multiplier
-(P(O)·1 + P(C)·1.5)/(P(O)+P(C)) is the expected slowdown given that the road is passable; a road is
-unusable if P(Blocked) ≥ τ. A\* (graph search, closed set, alphabetical tie-breaking) uses
-h = straight-line distance / 30 m/s. It is admissible because every road is at least as long as the
-straight line between its ends, no road is faster than 30 m/s and all multipliers are ≥ 1, and it is
-consistent by the triangle inequality, which makes graph search with a closed set optimal. At τ = 0.5
-the medium map splits into two halves, because the only connecting road N1↔N2 has P(Blocked) = 0.83.
-
-**CSP allocation (`allocation.py`, practicum 1).** Each round (the incidents that become known at time
-t) is a CSP: the variables are the incidents, the domains the capable responders that can reach them,
-and busy responders are queued at their last incident. Deadlines are soft: an incident with no on-time
-responder left in a branch does not fail the branch but adds its priority weight (Critical 8, High 4,
-Medium 2, Low 1) to a lower bound, used by branch and bound on the lexicographic objective (late weight,
-then total response time). MRV assigns the incident with the fewest on-time responders first. Because
-the assignment order also fixes the job order of a shared responder, MRV here changes the *answer*, not
-only the speed: without it, medium t = 0 lets R10 do I2 before the Critical I3 (late weight 8 instead
-of 4). The bound is only valid because A\* returns true shortest paths (triangle inequality), which in
-turn relies on the admissible heuristic: admissible h → optimal paths → valid bound → correct branch
-and bound. On small t = 0 the CSP misses weight 12 against 16 for the greedy baseline, which lets I1
-take R2, the only responder that can reach the Critical I4 on time. Limitation: the job order of one
-responder follows the search order, so the CSP is not exhaustive over all job orders.
-
-**Online simulation and statistics (`simulator.py`, `statistics.py`, `run.py`).** Edge costs are
-computed once from the t = 0 beliefs (no new evidence arrives during the simulation). Incidents are
-processed in rounds by timestamp; each round sees only the incidents with that timestamp and the
-current responder states, and its assignments are committed immediately (no clairvoyance, no
-re-planning). Deadlines met is divided by *all* incidents (unhandled = missed), while the average
-response time (arrival − incident timestamp) is taken over handled incidents only: two different
-denominators, on purpose. All reported times are expected times under the model, not observed ground
-truth.
+**CSP allocation** (`allocation.py`, practicum 1). Each round (the incidents with the same timestamp)
+is a CSP: variables = incidents, domains = capable responders that can reach them; busy responders are
+queued and wait at their last incident. Deadlines are soft (late help beats no help): an incident with
+no on-time responder left does not fail the branch, it adds its priority weight (Critical 8, High 4,
+Medium 2, Low 1) to a lower bound for branch and bound on (weighted lateness, total response time).
+MRV picks the incident with the fewest on-time responders. Because the assignment order also fixes the
+job order of a shared responder, MRV here changes the *answer*, not only the speed: without it, medium
+lets R10 do I2 before the Critical I3. The bound is valid only because A\* returns true shortest paths:
+admissible h → optimal paths → valid bound → correct branch and bound. Rounds are solved in time order
+with only the incidents known at that moment (no clairvoyance) and committed immediately.
 
 ## LLM collaboration
 
-<!-- BUDGET: ~0.6 page (~300 words).
-     1. Tools: name them exactly. Claude chat on claude.ai (model shown in the chat) for concept
-        explanations, design and the build guide; Claude Code in JetBrains Air for implementation
-        (if you use it). One sentence on the role of each.
-     2. First prompt: "The exact first prompt is in Appendix A (Prompt 1)." Don't paste it here too.
-     3. Three or four concrete interactions, each in ONE compact line or table row:
-          Asked -> LLM answered -> I accepted / modified / rejected -> why.
-        Real candidates from this session:
-        - Before the project, used the LLM as a tutor for notation in the course notes
-          ("sum out", CPT, the independence symbol, proportional to, argmax). It pointed out
-          that the notes say "PDF" where, strictly, a discrete PMF is meant.
-        - The LLM ran data checks on all three scenarios and found that the A* heuristic is
-          admissible, that two roads sit right on the blocked threshold (P = 0.527), and that
-          several deadlines flip depending on assumptions. -> I verified N1->N2 by hand: accepted.
-        - While drafting the guide, the LLM first claimed incident I2 (medium) would be on time
-          by chaining (19.8 s), then corrected itself to 20.8 s once the unreported-road
-          multiplier was included. -> Shows why every LLM number needs a test.
-        - Add at least one where YOU changed or rejected a suggestion during the build
-          (the grading's 14-17 band explicitly asks for this). Log these in PROMPTS.md as they happen. -->
+I used **Claude chat** (claude.ai) for concept explanations, the design and a build guide, and as a
+**reviewer** after every phase: it re-ran the tests, checked numbers by hand and mutation-tested the
+code. **Claude Code** (Claude Opus 5.5, in the terminal next to PyCharm) implemented each phase with its
+tests; the reviewer's findings became my next prompt (Appendix A: Prompt 1 and key follow-ups; full
+log in `PROMPTS.md`). Every LLM number became a test instead of a claim.
 
-| Asked | LLM answered | What I did | Why |
-|---|---|---|---|
-| Phase 1: write the data loader and its test (Appendix A, Prompt 5) | Loader + 5 passing tests; CPT orientation checked with `Police[Blocked][Blocked]` and a Citizen entry | **Modified**: replaced with an asymmetric entry (`Police[Open][Congested]` = 0.06, flipped 0.08), added a weather-consistency check (Prompt 6) | A diagonal entry and a symmetric table give the same value either way round, so that test could never fail |
-| Phase 2 review: three improvements from my own review (Prompt 8) | Applied | **Modified**: sharper independence docstring, expected prior computed per scenario, unknown weather/status/traffic values rejected at load time | The all-roads test only passed because the scenarios share tables; a typo like "Blockd" would have crashed deep inside `bayes.py` |
-| Phase 3: HMM + stationary-distribution test (Prompt 8) | Its first test demanded 10⁻⁹ after 50 predict steps and **failed**; fixed with tolerance 10⁻⁶, justified by "2nd eigenvalue ≈ 0.7" | **Modified** (Prompt 9): mutation testing (4 typical HMM bugs) showed a transition before observation 1 passed every test, so I added a one-observation test; corrected the eigenvalue to 0.742 (0.742⁵⁰ ≈ 3·10⁻⁷) | The HMM forgets its start (umbrella prior is already stationary; 10 observations wash it out), so the P(X₁) convention needed a targeted test; a plausible LLM number did not check out |
-| Phase 4: A\* + tests (Prompt 9) | A\* and UCS share one search function; the only optimality check was "A\* = UCS" | **Modified** (Prompt 10): my mutation test showed a road-cost bug inside the shared function passed in all 3 scenarios; added differential tests (path cost recomputed from its roads + independent Floyd–Warshall) | Two programs sharing code fail the same way, so comparing them proves little; the mutant is now caught in every scenario |
-| Committing phase 4 | Ran `pytest \| tail && git commit`: committed while 7 tests failed | **LLM process error, caught and explained**: the pipe hides pytest's exit code; the failures came from a stale `.pyc` left by its own mutation check (same second, same file size). It verified the committed code was correct, cleared the cache and now commits only on pytest's own exit code | An LLM's process needs checking too, not only its code |
-| Phase 5 test numbers from the reviewing LLM (Prompt 11) | Reviewer predicted greedy would leave the Critical I4 to R4 (arrival 147.4) | **Collaboration in both directions**: the implementing LLM checked the numbers against the cost model before writing tests and found greedy queues R2 behind I1 (arrival 89.6, still late); the tests use the verified value | The reviewing LLM's prediction was wrong; it was caught by verifying instead of trusting it |
-| Phase 5 mutation testing (Prompts 11–12) | An over-strong pruning bound and removing pruning both passed every test, brute force included | **Modified**: hand-made assignment trap (first solution 11 s, optimum 4 s) and a `prune=False` comparison (28 vs 202 nodes on large); the reviewing LLM's suggested "CSP < brute force" assertion sounded reasonable but tested the wrong thing (11 / 7 / 202 nodes even without pruning, because brute force counts every incident order) | On the real rounds the first plan found is already optimal, so pruning bugs are invisible without targeted tests |
-| Phase 7 validator review (Prompt 15) | Validator catches 13/13 injected faults and planner bugs | **Accepted, limitation found by me**: with Congested ×1.0 the validator still says "valid" (it shares the cost model); only the hand-checked unit tests fail | Testing in layers: validator = plan vs model, hand-calculated tests = model vs independent numbers |
+| Interaction | What I did and why |
+|---|---|
+| Phase 1: CPT-orientation test on a diagonal entry and a symmetric table (A, P6) | **Modified**: a test that reads the same either way round can never fail; replaced by an asymmetric entry (0.06 vs 0.08). |
+| Phase 3: HMM tests (A, P9) | **Modified**: my mutation test showed "transition before observation 1" passed everything (the HMM forgets its start); added a one-observation test. The LLM's eigenvalue claim (0.7) was wrong (0.742). |
+| Phase 4: "A\* = UCS" as the only optimality check (A, P10) | **Modified**: both share one function, so a shared bug passes; added differential tests against an independent Floyd–Warshall. |
+| Phase 5: my reviewer's predicted test numbers (A, P12) | **Both directions**: Claude Code verified them first and found the reviewer's greedy arrival (147.4 s) wrong (89.6 s); the reviewer's suggested assertion tested the wrong thing and was replaced. |
+| Phase 4 commit | **LLM process error**: it committed while tests failed (`pytest \| tail` hides the exit code; a stale `.pyc` from its own mutation check). It explained and changed its process. |
 
 ## Testing & results
 
-<!-- BUDGET: ~0.8 page. Mostly tables, 1-2 sentences of interpretation under each.
-     TABLE 1 - Component tests: Test | Expected | Result
-        Bayes hand-check N1->N2 (0.014 / 0.459 / 0.527) | HMM umbrella example (P(R3|+,+,-) = 2/5)
-        | A* == UCS on all node pairs | no-clairvoyance test | loader counts per scenario
-     TABLE 2 - Validator fault injection: Injected fault | Caught? (one row per fault type)
-     TABLE 3 - Scenario results: Scenario | Handled | Responders used | Avg response (s) | Deadlines met (%)
-        Two rows per scenario: your CSP vs the greedy baseline. All times in seconds.
-     SENSITIVITY: one sentence or mini-table for tau = 0.3 / 0.5 / 0.7, and decision 2 switched.
-     INTERPRET: explain WHY deadlines are missed (e.g. medium has 20 s windows), not only that they are.
-     Say clearly: these are EXPECTED times under the model, not measured ground truth. -->
+`python -m pytest` runs **110 tests** (plus an opt-in, slow mutation sweep), using
+**hand-calculated values** (N1→N2 posterior 0.014 / 0.459 / 0.527; the practicum umbrella HMM exactly
+with fractions, 2/5 and 15/128; the small t = 0 allocation), **differential testing** (A\* = UCS =
+Floyd–Warshall on every node pair; the CSP = exhaustive brute force on all three t = 0 rounds) and
+**properties** (consistent heuristic, no clairvoyance). The **validator** reads only `plan.json` and the
+raw files and never imports the planner; all 13 injected plan faults are caught with exactly the
+expected error. A **mutation sweep** applies 35 typical bugs from every module to a copy of the project:
+**35 of 35 are caught** (its first run exposed an untested τ boundary). Testing works in layers: the
+validator shares the cost model, so a wrong model (Congested ×1.0) still looks "valid"; only the
+hand-calculated unit tests catch that. In the results below, deadlines met = on-time arrivals / *all*
+incidents (unhandled = missed) and the average response time (arrival − timestamp) is over handled
+incidents; all values are **expected** seconds under the model, not observed ground truth.
 
-**Table 1 – Component tests** (`pytest`, all tests in `tests/`)
-
-| Test | Expected | Result |
-|---|---|---|
-| Loader counts (nodes/roads/responders/incidents) | small 5/14/4/7, medium 12/30/10/12, large 26/60/10/20 | pass |
-| CPT orientation (asymmetric entries) | Police P(Congested\|Open) = 0.06; HMM T(Low→Medium) = 0.18, E(Medium\|Low) = 0.14 | pass |
-| Blank CSV lines / `;`-split capabilities | blank and comma-only rows skipped | pass |
-| Inconsistent weather on one road | `ValueError`; opposite direction allowed | pass |
-| Bayes hand check, small N1→N2 (Rain; B, B, C) | O 0.014, C 0.459, B 0.527 | pass |
-| Bayes, no reports + Clear / no weather | P(S\|Clear) / prior marginal 0.685, 0.18, 0.135 | pass |
-| Bayes, one source missing; every road in all scenarios | matches hand calculation; each sums to 1 | pass |
-| Loader rejects unknown weather / status / traffic level | `ValueError` at load time | pass |
-| HMM umbrella example (practicum 2 Q5, exact `Fraction`) | P(R₃\|+,+,−) = 2/5, likelihood 15/128 | pass |
-| HMM predicted P(High): small N4→H1, large N16→N17 | 0.548, 0.704 | pass |
-| HMM stationary distribution | (45, 49, 33)/127, exact fixed point π·T = π | pass |
-| HMM convention initial = P(X₁): one observation "Low" | (0.941, 0.0554, 0.0037); off-by-one bug gives (0.925, 0.069, 0.005) and only this test fails | pass |
-| Road distance ≥ straight line; no road faster than 30 m/s | smallest ratio: small 1.017, medium 1.132, large 1.116 | pass |
-| Heuristic consistent: cost(u,v) ≥ h(u) − h(v), every usable road and goal | holds in all 3 scenarios | pass |
-| A\* = UCS = Floyd–Warshall on every node pair; path cost = sum of its roads; A\* never expands more | expanded A\*/UCS: 46/50, 144/180, 7780/8450 | pass |
-| Small: H1↔N3 blocked (0.998); N1→N2 unusable at τ 0.5, usable at τ 0.6 | as expected; N2→N1 stays usable | pass |
-| Hand-made graph: shortest in metres ≠ fastest; unreachable goal | A\* takes the faster 30 m/s detour; `None` | pass |
-| Mutation: inadmissible h (15 m/s) | consistency/straight-line tests fail in all scenarios; A\* = UCS only on large | caught |
-| Mutation: some roads costed wrong inside the shared search | before: only the hand-made graph; after differential tests: all 3 scenarios | caught |
-| CSP small t = 0: I4→R2 56.4 on time, I1→R4 81.1 late, I2→R1 (N1→H1→N2) 92.2 late, I3→R3 131.2 | late weight 12; greedy 16 (R2 queued for I4, 89.6) | pass |
-| CSP medium t = 0: I3→R10 at 0, I2→R10 queued (start 10, arrival 20.78, late); R9 cannot reach the N2 side | as expected | pass |
-| Capability nobody has | unhandled; the other incidents still assigned | pass |
-| CSP = brute force (all orders × all choices), t = 0 | nodes 7 / 7 / 28 vs 96 / 1,440 / 15,360 plans | pass |
-| Assignment trap (first solution not optimal) | CSP 4 s, greedy 11 s | pass |
-| Pruning on vs off | same answer; nodes 7 vs 11 (small), 28 vs 202 (large) | pass |
-| Mutations: no MRV / busy ignored / handling time ignored / over-strong bound / no pruning | all caught (the last two only after the targeted tests) | caught |
-| No clairvoyance: change future incident I7 (small, t = 60) | all assignments of earlier rounds identical; I7's own assignment changes | pass |
-| Every incident assigned once or unhandled; nothing starts before its timestamp (all scenarios, both policies) | holds | pass |
-| Statistics on a hand-made result: 2 handled (1 late) + 1 unhandled | deadlines met 1/3 = 33.3%; average over the 2 handled only | pass |
-| `run.py` end to end, all scenarios | plan.json has exactly the 4 keys with the right types, sorted by time | pass |
-| Mutations: rounds processed latest-first / all incidents known at t = 0 | no-clairvoyance test fails / 7 tests fail | caught |
-| Validator on the real plans (3 scenarios × CSP/greedy) | 0 errors; warnings = the planner's late incidents (5 / 1 / 7); statistics.txt matches a recomputation from plan.json | pass |
-| Validator imports | never `search`, `allocation` or `simulator` (checked with `ast`) | pass |
-| Mutations in the validator: forgets the responder moved / no overlap check / ignores multipliers | 18 / 2 / 9 tests fail | caught |
-| τ monotonicity (τ = 0.00, 0.05, …, 1.00, all scenarios) | usable road sets are nested | pass |
-| Monte Carlo: same seed; certain world (all Open, all Low) | identical results; equals the deterministic plan exactly, no spread | pass |
-| Monte Carlo: forced blocked road on R1's route | I2 and R1's next job I5 missed in every world (stranded); others unaffected; mutant without stranding caught | pass |
-| Monte Carlo: small I2 route blocked | 0.249 vs analytic 0.252 (tolerance 0.02) | pass |
-| Loader: observation numbers 1, 2, 4 for one road | `ValueError` (gap); out-of-order numbers are sorted | pass |
-| τ boundary: τ exactly = P(Blocked) of N1→N2 | road unusable (≥ is inclusive); usable just above | pass |
-| `run.py` rejects τ ∉ (0, 1], unobserved traffic < 1, node limit < 1 | argparse error (exit 2), nothing written | pass |
-| Heuristic robustness: 40 m/s road; road shorter than the straight line | h uses the fastest road; falls back to UCS, = Floyd–Warshall (plain A\* would give 10.8 s instead of 7.7 s) | pass |
-| Node limit hit (limit 1) | greedy fallback, no incident lost, warning printed and in statistics.txt | pass |
-
-Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
-only comparing them with each other, every returned path is re-costed from its roads and compared with an
-independent Floyd–Warshall reference written in the test. Each test was itself checked by **mutation
-testing** (injecting a known bug and confirming a test fails). An overarching **mutation sweep** (`tools/mutation_sweep.py`) applies
-35 typical bugs from every module (flipped CPTs, HMM off-by-one, inadmissible heuristic, no MRV,
-clairvoyance, wrong statistics denominators, a validator that skips checks, ...) one at a time to a copy
-of the project and runs the whole suite: **35 of 35 are caught**. Its first run found one gap (a road
-with P(Blocked) exactly τ was never tested), which a boundary test now closes.
-
-**Table 2 – Validator fault injection** (`validator.py`: reads only `plan.json` + raw files, never the
-planner's search/allocation code; each fault must give exactly the expected error)
-
-| Injected fault | Expected error | Caught |
-|---|---|---|
-| Drop a middle path node | no_road | yes |
-| Route through small N1→N2 (blocked at τ 0.5) | blocked_road | yes |
-| Wrong first node / wrong last node | path_start / path_end | yes / yes |
-| Incapable responder | capability | yes |
-| Start before the incident timestamp / R4 before 10 | before_timestamp / before_available | yes / yes |
-| Same incident twice | duplicate | yes |
-| Two overlapping jobs of one responder | overlap | yes |
-| Unknown id / missing key / wrong type | unknown_id / schema / schema | yes |
-| Repeated node in a path | repeated_node | yes |
-| *Planner bug:* allocation ignores busy responders | overlap | yes, all 3 scenarios |
-| *Planner bug:* A\* may use blocked roads | blocked_road | small, large; **not medium** (no route changes) |
-| *Model bug:* Congested ×1.0 instead of ×1.5 | — | **no** ("valid", even fewer late warnings); 8 unit tests fail |
-
-Testing works in layers. The validator checks the *plan against the model*; it shares `cost_model`
-on purpose (it is the definition of travel time), so a wrong cost model makes planner and validator
-agree on wrong numbers. The unit tests with hand-calculated values (e.g. 56.41 s) check the *model
-against independent calculations*. Neither layer is enough on its own. "Valid" means every hard
-constraint holds under our beliefs (roads with P(Blocked) < τ, expected travel times), not that the
-plan works in reality.
-
-**Table 3 – Scenario results** (τ = 0.5; expected times in seconds; runs committed in `results/`)
-
-| Scenario | Policy | Handled | Responders used | Avg response (s) | Deadlines met | Weighted lateness | Critical on time |
+| Scenario | Policy | Handled | Responders used | Avg response (s) | Deadlines met | Weighted missed | Critical on time |
 |---|---|---|---|---|---|---|---|
-| small | CSP | 7/7 | 4 | 112.8 | 28.6% | **24** | **1/2** |
-| small | greedy | 7/7 | 4 | 112.2 | 28.6% | 28 | 0/2 |
-| medium | CSP | 12/12 | 8 | 34.6 | 91.7% | **4** | **6/6** |
-| medium | greedy | 12/12 | 8 | 37.2 | 91.7% | 8 | 5/6 |
-| large | CSP | 20/20 | 8 | 1319.2 | 65.0% | 36 | 5/8 |
-| large | greedy | 20/20 | 8 | 1319.2 | 65.0% | 36 | 5/8 |
+| 1 (small) | CSP / greedy | 7/7 | 4 / 4 | 112.8 / 112.2 | 28.6% / 28.6% | **24** / 28 | **1/2** / 0/2 |
+| 2 (medium) | CSP / greedy | 12/12 | 8 / 8 | 34.6 / 37.2 | 91.7% / 91.7% | **4** / 8 | **6/6** / 5/6 |
+| 3 (large) | CSP / greedy | 20/20 | 8 / 8 | 1319.2 / 1319.2 | 65.0% / 65.0% | 36 / 36 | 5/8 / 5/8 |
 
-The required, unweighted deadline percentage hides the CSP's advantage: in small and medium both
-policies reach the same percentage, but the CSP keeps a Critical incident on time where greedy lets it
-slip (weighted lateness = Σ priority weights of late incidents, the CSP's objective). In large most
-rounds hold one incident and both policies produce the same plan. Small misses several deadlines by
-only 1–5 s (I1 +1.1 s, I2 +2.2 s), so these outcomes depend on the model's assumptions; the one real
-outlier is I7 (+39.4 s): only R3 can do traffic control and it is still busy at N3 with I3. All plans
-were re-checked by an independent script reading only `plan.json` and the raw scenario files
-(0 errors).
+The unweighted percentage hides the CSP's advantage: it keeps a Critical incident on time where greedy
+does not. Small misses several deadlines by only 1–5 s.
 
-**Experiments** (`python -m src.experiments`; full tables in `results/experiments.md`; CSP unless stated)
-
-**Table 4 – Threshold τ** (deterministic deadlines met / weighted missed = Σ weights of late or unhandled)
-
-| Scenario | τ = 0.1 | τ = 0.5 | τ = 0.6 | τ = 0.9 |
-|---|---|---|---|---|
-| small | 14.3% / 32 (6 unhandled) | 28.6% / 24 | 57.1% / 12 | 57.1% / 12 |
-| medium | 33.3% / 46 (8 unhandled) | 91.7% / 4 | 91.7% / 4 | 91.7% / 4 |
-| large | 20.0% / 80 (16 unhandled) | 65.0% / 36 | 65.0% / 32 | 65.0% / 32 |
-
-*What this shows:* τ = 0.1 closes every unreported road (P(Blocked) = 0.135) and disconnects all three
-maps, so most incidents become unhandled. τ = 0.6 opens the four roads at 0.527 (small N1→N2, N2→N4;
-large N5↔N16), which doubles small's *planned* deadlines met. τ = 0.9 also reconnects medium
-(N1↔N2, 0.83) but changes nothing, because every incident is already reachable within its own half.
-
-**Table 5 – Modelling assumptions** (deadlines met / weighted missed)
-
-| Scenario | Baseline (prior, ×1.0) | Unreported roads assumed open | Unobserved traffic at the stationary multiplier (×1.226; medium ×1.25) |
+| Experiment (`python -m src.experiments`) | small | medium | large |
 |---|---|---|---|
-| small | 28.6% / 24 | 85.7% / 4 | 28.6% / 24 |
-| medium | 91.7% / 4 | 100.0% / 0 | 33.3% / 52 |
-| large | 65.0% / 36 | 75.0% / 26 | 45.0% / 56 |
+| τ = 0.1 (closes every unreported road) | 14.3%, 6 unhandled | 33.3%, 8 unhandled | 20.0%, 16 unhandled |
+| τ = 0.6 (opens the roads at P(Blocked) 0.527) | 57.1% | 91.7% | 65.0% |
+| Unreported roads assumed open | 85.7% | 100.0% | 75.0% |
+| Unobserved traffic at the stationary multiplier | 28.6% (all observed) | 33.3% | 45.0% |
+| Monte Carlo, τ 0.5: P(≥1 planned route blocked) | 0.68 | 0.64 | 0.97 |
+| Monte Carlo, τ 0.5 / 0.6: sampled mean deadlines met | 36.2% / 35.1% | 78.2% / 78.2% | 43.1% / 42.1% |
 
-*What this shows:* the results depend more on the modelling assumptions than on the algorithm.
-Treating unreported roads as open (decision 2) removes the ×1.104 prior multiplier and turns small from
-28.6% into 85.7%, because many misses were only 1–5 s. Unobserved traffic (decision 5) does not touch
-small (all 14 roads have observations) but collapses medium from 91.7% to 33.3%: almost none of its
-roads are observed and its deadlines leave windows of 20 s. Our choices (prior, ×1.0) are the honest
-middle; the spread is the real uncertainty of the reported numbers.
-
-**CSP vs greedy** (Table 3) is unchanged by these runs: equal unweighted percentages, but the CSP has
-lower weighted missed (24 vs 28, 4 vs 8) because it protects Critical incidents.
-
-**Table 6 – Monte Carlo robustness** (Notes 6, sampling; 5000 worlds, fixed seed; each road's true
-status drawn from its posterior, each observed road's traffic from its HMM belief; the fixed plan is
-replayed, a blocked route means the incident is missed and the responder is stranded)
-
-| Scenario | τ | Planned deadlines met | Sampled mean (5th–95th pct) | P(≥1 planned route blocked) |
-|---|---|---|---|---|
-| small | 0.5 | 28.6% | 36.2% (0.0–71.4%) | 0.682 |
-| small | 0.6 | **57.1%** | **35.1%** (0.0–71.4%) | 0.820 |
-| medium | 0.5 | 91.7% | 78.2% (58.3–100.0%) | 0.637 |
-| large | 0.5 | 65.0% | 43.1% (25.0–65.0%) | 0.965 |
-| large | 0.6 | 65.0% | 42.1% (25.0–60.0%) | 0.982 |
-
-*What this shows:* planned numbers are not what happens. In small the sampled mean (36.2%) is *above*
-the plan, because the plan uses expected multipliers (an unreported road costs ×1.104, but is Open in
-68.5% of worlds) and many planned misses are tiny. In medium and large blocked routes dominate: at
-least one planned route is blocked in 64% and 97% of worlds. Raising τ to 0.6 doubles small's planned
-score but makes the sampled result slightly *worse* (35.1% vs 36.2%), because the extra roads are
-blocked in 52.7% of worlds: the deterministic metric rewards optimism, sampling does not. This supports
-τ = 0.5. Concretely, R1's route to the Critical I2 (N1→H1→N2, two unreported roads) is blocked in
-24.9% of worlds (analytically 1 − 0.865² = 25.2%): valid under our beliefs, blocked in one world in four.
+The results depend more on the modelling assumptions than on the algorithm: medium falls from 91.7% to
+33.3% when its unobserved roads get the stationary traffic multiplier, because its deadlines leave 20 s
+windows. **Monte Carlo** (Notes 6, sampling: 5000 worlds with true road states and traffic drawn from
+the beliefs, fixed plan replayed) shows what expected values hide. τ = 0.6 doubles small's
+*planned* score but not the sampled one (35.1% vs 36.2%), because the extra roads are blocked in 52.7%
+of the worlds; this supports τ = 0.5. R1's route to the Critical I2 crosses two unreported roads and is
+blocked in 24.9% of the worlds (analytically 1 − 0.865² = 25.2%).
 
 ## Critical reflection
 
-<!-- BUDGET: ~0.4 page (~200 words). Three short paragraphs:
-     1. Limitations, each with its consequence: statistics are expectations; one static traffic
-        belief for the whole simulation; commit-immediately policy (no re-planning when a more urgent
-        incident arrives); reports assumed independent given status (false if citizens copy police);
-        multipliers chosen by you, not learned.
-     2. LLM: where it helped (speed, theory explanations, finding edge cases) and where it misled
-        (a concrete example, see above), and how you caught it (tests, hand calculation).
-     3. Next improvements, each WITH how you would measure it:
-        rolling-horizon re-planning -> compare deadline % on all 3 scenarios;
-        Monte Carlo replay with sampled road states -> % of routes that hit a blocked road. -->
+<!-- Draft written from my reflections during the project; edit freely, it is my reflection. -->
 
----
+**Limitations.** Every number in this report is an *expected* value under my own model. A "valid" plan
+only respects the hard constraints under my beliefs: the Monte Carlo replay shows that at least one
+planned route is blocked in 64–97% of the sampled worlds, and the route to a Critical incident in small
+in one world out of four. The beliefs are computed once at t = 0 and used for the whole simulation,
+assignments are never re-planned when a more urgent incident arrives, reports are assumed independent
+given the road status (false if citizens copy the police), and the multipliers are my choices, not
+learned. The experiments show that these assumptions move the results more than the choice of algorithm.
+
+**The LLMs.** They made me much faster and explained the theory well, and the reviewer–implementer setup
+found edge cases I would have missed. They also misled me in convincing ways: a test that could never
+fail, a wrong eigenvalue, a commit made while tests were failing, a stationary multiplier copied to the
+wrong scenario, and two wrong predictions from my own reviewer. I caught each one only because I
+treated every claim as something to test: hand calculations, independent scripts and mutation testing.
+The main lesson is that a passing test is only evidence if it can fail.
+
+**Next steps.** (1) Rolling-horizon re-planning: re-solve when a new incident arrives and compare the
+weighted missed and the Monte Carlo deadlines met on all three scenarios. (2) Risk-aware routing that
+penalises P(Blocked) instead of a hard τ, measured by the Monte Carlo P(route blocked) and deadlines
+met. (3) Time-varying traffic, which needs a time unit for the observations, measured the same way.
+
+<div style="page-break-before: always"></div>
 
 ## Appendix A: LLM prompts
 
-<!-- One page max. Copy from PROMPTS.md: Prompt 1 verbatim, then the 3-5 most important follow-ups
-     (short). Refer to them from the main text as "(Appendix A, Prompt 3)". -->
+Full log with responses and what I did: `PROMPTS.md` (numbers below match it).
+
+**Prompt 1** (first substantive prompt, Claude chat, verbatim):
+
+> I need to complete this assignment but I do not know exactly how. For this prompt I am not going to explain everything thorougly, but I just want you to work with me and give me a guide that maximalizes both the project generated as well as my understanding of it. I still need to add all the scenarios so wait a bit before generating or doing anything. When I send a prompt with only 'ready' in it. You may begin!
+
+**Prompt 6** (phase 1 review, Claude Code, paraphrased): 
+
+> Fixes before phase 2: 
+> The CPT orientation test cannot fail: Police[Blocked][Blocked] is diagonal and the citizen table is symmetric. Test an asymmetric entry instead (Police["Open"]["Congested"] == 0.06. flipped it would be 0.08) and explain in a comment why the old check proved nothing. […]
+
+**Prompt 9** (phase 3 review, Claude Code, paraphrased): 
+
+> Add a test pinning the convention initial = P(X1): small model, ONE observation "Low" must give B ∝ emission·initial = (0.941, 0.0554, 0.0037). Explain in a comment why the existing tests cannot catch a transition applied before observation 1 […]. Prove it: temporarily apply the transition before observation 1, show only the new test fails, then revert. 2. Fix the comment: the 2nd eigenvalue of T is 0.742 […]
+
+**Prompt 10** (phase 4 review, Claude Code, paraphrased): 
+
+> A\* and UCS share _best_first, so a bug inside it makes both wrong the same way and "A\* == UCS" still passes […]. In the every-pair test: (a) recompute each returned path's cost by summing costs[(a,b)].cost over its roads […]; (b) compare with an independent all-pairs reference written in the test itself (Floyd–Warshall)."
+
+**Prompt 12** (phase 5 review, Claude Code, paraphrased):
+
+> assert in the brute-force test that the CSP explores fewer nodes than brute force evaluates plans (removing pruning currently goes unnoticed)" — Claude Code showed this assertion holds even without pruning and replaced it with a pruning-on vs pruning-off test.
+
+**Prompt 17** (phase 8 review): 
+
+> Experiment 3 bug: the stationary multiplier is computed from small's traffic model and applied to all scenarios. Medium has a different traffic_probabilities.json (its stationary multiplier is 1.25). Compute it per scenario and show it per row. […]"

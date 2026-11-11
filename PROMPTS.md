@@ -479,6 +479,40 @@ results/small-csp, mutation sweep 35/35 in the clone: nothing failed. Filled in 
 
 ---
 
+## Prompt 19 (Report: reflection, appendix, 3 pages) (2026-11-11, Claude Code)
+
+> a few points:
+>
+> - why is a test skipped when running pytest
+> - I need to fill in the critical reflection and the appendix for the prompts in my report. As you can see my reflections were clear throughout the chat. Make the critical reflection for me but write it so that I can modify if I see fit, since it my reflection.
+> - cut down the report to 3 pages. Do not forget the introduction page or whatever you call it does contribute to the count!
+
+**Response:** the skipped test is the opt-in mutation sweep (about 25 s, runs the suite 36 times;
+`RUN_MUTATION_SWEEP=1`). Pointed out that the assignment says the title page does not count, but followed
+the stricter instruction. Measured pages by rendering report.md to PDF (A4, 11 pt, 2 cm margins, headless
+Chrome) instead of guessing: the old report was 7 pages without reflection and appendix. Rewrote it
+(4,744 → about 1,900 words): one paragraph per component, a 5-row LLM table, one testing paragraph, a
+compact results table and one experiments table; the detailed tables stay in README.md,
+results/experiments.md and the tests. Wrote the critical reflection in first person from my reflections
+during the project (limitations, where the LLMs helped and misled me, next steps with how to measure
+them), marked as editable. Appendix A: Prompt 1 verbatim plus short verbatim quotes from Prompts 6, 9, 10,
+12 and 17 (checked word for word against this log). Result: 3 pages including the title block, appendix on
+page 4.
+**What I did:** accepted; I will edit the critical reflection in my own words where needed.
+
+---
+
+## Prompt 20 (Title page clarification, final commit) (2026-11-11, Claude Code)
+
+> Before you commit, merge and push. I need you to know I mean the title page does not count as a page, though I do not think you need to change much in report.md. And add this final prompt to PROMPTS.md
+
+**Response:** put the title block on its own page (page break after it), so the report is a title page +
+3 content pages + the prompt appendix; the content itself was not changed and leaves spare room on the
+last content page. Logged Prompts 19 and 20, then committed, merged into main and pushed.
+**What I did:** accepted.
+
+---
+
 <!-- Template for new entries:
 
 ## Prompt N: <topic> (<date time>, <tool>)
