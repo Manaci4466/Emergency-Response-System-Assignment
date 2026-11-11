@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from src.allocation import Assignment, allocate, greedy, id_key, initial_states
+from src.allocation import NODE_LIMIT, Assignment, allocate, greedy, id_key, initial_states
 from src.cost_model import edge_costs
 from src.data_loader import Incident, Scenario
 
@@ -37,6 +37,11 @@ class SimulationResult:
     unhandled: list[str]
     rounds: list[RoundStats]
 
+    @property
+    def limit_rounds(self) -> list[float]:
+        """Times of the rounds in which the CSP hit its node limit (best plan found so far used)."""
+        return [r.time for r in self.rounds if r.hit_limit]
+
 
 def rounds_by_time(incidents: list[Incident]) -> list[tuple[float, list[Incident]]]:
     """Group incidents by timestamp, in ascending time order."""
@@ -47,19 +52,24 @@ def rounds_by_time(incidents: list[Incident]) -> list[tuple[float, list[Incident
 
 
 def simulate(
-    scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0, policy: str = "csp"
+    scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0, policy: str = "csp",
+    unreported: str = "prior", node_limit: int = NODE_LIMIT,
 ) -> SimulationResult:
     if policy not in POLICIES:
         raise ValueError(f"unknown policy {policy!r}, choose from {sorted(POLICIES)}")
     solve = POLICIES[policy]
-    costs = edge_costs(scenario, tau=tau, unobserved_traffic=unobserved_traffic)  # once, t = 0
+    costs = edge_costs(scenario, tau=tau, unobserved_traffic=unobserved_traffic,
+                       unreported=unreported)  # once, t = 0
     states = initial_states(scenario)
     assignments: list[Assignment] = []
     unhandled: list[str] = []
     rounds: list[RoundStats] = []
     for t, incidents in rounds_by_time(scenario.incidents):
         # Only THIS round's incidents and the CURRENT states are passed: no look-ahead.
-        new, missed, states, st = solve(scenario, costs, t, incidents, states)
+        if policy == "csp":
+            new, missed, states, st = allocate(scenario, costs, t, incidents, states, node_limit)
+        else:
+            new, missed, states, st = solve(scenario, costs, t, incidents, states)
         assignments.extend(new)
         unhandled.extend(missed)
         rounds.append(RoundStats(t, tuple(i.id for i in incidents), st.nodes, st.hit_limit,

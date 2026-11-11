@@ -41,10 +41,21 @@ def status_multiplier(belief: dict[str, float]) -> float:
     return (belief["Open"] * STATUS_MULT["Open"] + belief["Congested"] * STATUS_MULT["Congested"]) / passable
 
 
+CERTAIN_OPEN: dict[str, float] = {"Open": 1.0, "Congested": 0.0, "Blocked": 0.0}
+
+
 def edge_costs(
-    scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0
+    scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0,
+    unreported: str = "prior",
 ) -> dict[Edge, EdgeCost]:
+    """unreported="prior": roads without reports get the prior marginal (decision 2, P(B) = 0.135).
+    unreported="open": they are assumed open (P(Blocked) 0, status multiplier 1.0); experiment only.
+    """
+    if unreported not in ("prior", "open"):
+        raise ValueError(f"unreported must be 'prior' or 'open', not {unreported!r}")
     status = road_status_beliefs(scenario)  # Phase 2: every road
+    if unreported == "open":
+        status = {e: (b if e in scenario.reports else CERTAIN_OPEN) for e, b in status.items()}
     traffic = traffic_beliefs(scenario)  # Phase 3: only roads with observations
     costs: dict[Edge, EdgeCost] = {}
     for edge, road in scenario.roads.items():

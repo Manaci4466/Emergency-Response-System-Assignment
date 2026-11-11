@@ -74,3 +74,14 @@ def expected_multiplier(
 ) -> float:
     """E[mult] = Σ_x P(x) · mult(x)  (expected value over the traffic belief)."""
     return sum(p * multipliers[x] for x, p in belief.items())
+
+
+def stationary_distribution(model: TrafficModel, tol: float = 1e-12, max_steps: int = 100_000) -> Belief:
+    """π with π = π · T, found by predicting from the initial belief until it stops changing."""
+    belief: Belief = dict(model.initial)
+    for _ in range(max_steps):
+        nxt = predict(model, belief)
+        if max(abs(nxt[x] - belief[x]) for x in belief) < tol:
+            return nxt
+        belief = nxt
+    raise RuntimeError("prediction did not converge")

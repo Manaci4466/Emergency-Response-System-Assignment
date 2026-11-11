@@ -192,6 +192,10 @@ truth.
 | Validator on the real plans (3 scenarios × CSP/greedy) | 0 errors; warnings = the planner's late incidents (5 / 1 / 7); statistics.txt matches a recomputation from plan.json | pass |
 | Validator imports | never `search`, `allocation` or `simulator` (checked with `ast`) | pass |
 | Mutations in the validator: forgets the responder moved / no overlap check / ignores multipliers | 18 / 2 / 9 tests fail | caught |
+| τ monotonicity (τ = 0.00, 0.05, …, 1.00, all scenarios) | usable road sets are nested | pass |
+| Monte Carlo: same seed; certain world (all Open, all Low) | identical results; equals the deterministic plan exactly, no spread | pass |
+| Monte Carlo: forced blocked road on R1's route | I2 and R1's next job I5 missed in every world (stranded); others unaffected; mutant without stranding caught | pass |
+| Monte Carlo: small I2 route blocked | 0.249 vs analytic 0.252 (tolerance 0.02) | pass |
 
 Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
 only comparing them with each other, every returned path is re-costed from its roads and compared with an
@@ -242,6 +246,60 @@ only 1–5 s (I1 +1.1 s, I2 +2.2 s), so these outcomes depend on the model's ass
 outlier is I7 (+39.4 s): only R3 can do traffic control and it is still busy at N3 with I3. All plans
 were re-checked by an independent script reading only `plan.json` and the raw scenario files
 (0 errors).
+
+**Experiments** (`python -m src.experiments`; full tables in `results/experiments.md`; CSP unless stated)
+
+**Table 4 – Threshold τ** (deterministic deadlines met / weighted missed = Σ weights of late or unhandled)
+
+| Scenario | τ = 0.1 | τ = 0.5 | τ = 0.6 | τ = 0.9 |
+|---|---|---|---|---|
+| small | 14.3% / 32 (6 unhandled) | 28.6% / 24 | 57.1% / 12 | 57.1% / 12 |
+| medium | 33.3% / 46 (8 unhandled) | 91.7% / 4 | 91.7% / 4 | 91.7% / 4 |
+| large | 20.0% / 80 (16 unhandled) | 65.0% / 36 | 65.0% / 32 | 65.0% / 32 |
+
+*What this shows:* τ = 0.1 closes every unreported road (P(Blocked) = 0.135) and disconnects all three
+maps, so most incidents become unhandled. τ = 0.6 opens the four roads at 0.527 (small N1→N2, N2→N4;
+large N5↔N16), which doubles small's *planned* deadlines met. τ = 0.9 also reconnects medium
+(N1↔N2, 0.83) but changes nothing, because every incident is already reachable within its own half.
+
+**Table 5 – Modelling assumptions** (deadlines met / weighted missed)
+
+| Scenario | Baseline (prior, ×1.0) | Unreported roads assumed open | Unobserved traffic at the stationary multiplier (×1.226; medium ×1.25) |
+|---|---|---|---|
+| small | 28.6% / 24 | 85.7% / 4 | 28.6% / 24 |
+| medium | 91.7% / 4 | 100.0% / 0 | 33.3% / 52 |
+| large | 65.0% / 36 | 75.0% / 26 | 45.0% / 56 |
+
+*What this shows:* the results depend more on the modelling assumptions than on the algorithm.
+Treating unreported roads as open (decision 2) removes the ×1.104 prior multiplier and turns small from
+28.6% into 85.7%, because many misses were only 1–5 s. Unobserved traffic (decision 5) does not touch
+small (all 14 roads have observations) but collapses medium from 91.7% to 33.3%: almost none of its
+roads are observed and its deadlines leave windows of 20 s. Our choices (prior, ×1.0) are the honest
+middle; the spread is the real uncertainty of the reported numbers.
+
+**CSP vs greedy** (Table 3) is unchanged by these runs: equal unweighted percentages, but the CSP has
+lower weighted missed (24 vs 28, 4 vs 8) because it protects Critical incidents.
+
+**Table 6 – Monte Carlo robustness** (Notes 6, sampling; 5000 worlds, fixed seed; each road's true
+status drawn from its posterior, each observed road's traffic from its HMM belief; the fixed plan is
+replayed, a blocked route means the incident is missed and the responder is stranded)
+
+| Scenario | τ | Planned deadlines met | Sampled mean (5th–95th pct) | P(≥1 planned route blocked) |
+|---|---|---|---|---|
+| small | 0.5 | 28.6% | 36.2% (0.0–71.4%) | 0.682 |
+| small | 0.6 | **57.1%** | **35.1%** (0.0–71.4%) | 0.820 |
+| medium | 0.5 | 91.7% | 78.2% (58.3–100.0%) | 0.637 |
+| large | 0.5 | 65.0% | 43.1% (25.0–65.0%) | 0.965 |
+| large | 0.6 | 65.0% | 42.1% (25.0–60.0%) | 0.982 |
+
+*What this shows:* planned numbers are not what happens. In small the sampled mean (36.2%) is *above*
+the plan, because the plan uses expected multipliers (an unreported road costs ×1.104, but is Open in
+68.5% of worlds) and many planned misses are tiny. In medium and large blocked routes dominate: at
+least one planned route is blocked in 64% and 97% of worlds. Raising τ to 0.6 doubles small's planned
+score but makes the sampled result slightly *worse* (35.1% vs 36.2%), because the extra roads are
+blocked in 52.7% of worlds: the deterministic metric rewards optimism, sampling does not. This supports
+τ = 0.5. Concretely, R1's route to the Critical I2 (N1→H1→N2, two unreported roads) is blocked in
+24.9% of worlds (analytically 1 − 0.865² = 25.2%): valid under our beliefs, blocked in one world in four.
 
 ## Critical reflection
 

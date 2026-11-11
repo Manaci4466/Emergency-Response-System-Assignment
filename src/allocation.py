@@ -189,8 +189,13 @@ def allocate(
                    resp + (a.arrival - inc.timestamp))
 
     search(variables, states, [], [], 0.0, 0.0)
+    if best_obj == (math.inf, math.inf):
+        # The node limit was hit before even ONE complete plan was found (only possible when
+        # node_limit < number of incidents): fall back to greedy so no incident silently vanishes.
+        g_assign, g_unhandled, g_states, g_stats = greedy(scenario, costs, now, incidents, states)
+        return g_assign, g_unhandled, g_states, AllocationStats(
+            nodes, True, g_stats.late_weight, g_stats.response_time)
     assignments, skipped = best
-    # (with node_limit >= number of incidents the first DFS leaf is always reached, so best is set)
     new_states = dict(states)
     by_id = {i.id: i for i in incidents}
     for a in sorted(assignments, key=lambda a: a.start):

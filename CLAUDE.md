@@ -15,12 +15,16 @@ so understanding matters more than features.
 
 ## Run
 Setup: `python -m venv .venv && .venv/bin/pip install -r requirements.txt`; tests: `pytest`.
-`python run.py Scenarios/<name> [--out output/<name>] [--tau 0.5]` -> writes plan.json + statistics.txt.
+`python run.py Scenarios/<name> [--out output/<name>] [--tau 0.5] [--policy csp|greedy] [--unobserved-traffic 1.0] [--node-limit 100000]`
+-> writes plan.json + statistics.txt, then validates the plan (exit code 1 on errors).
+`python -m src.experiments` -> results/experiments.md (sensitivity + Monte Carlo).
 Units: metres, metres/second, seconds (fractional allowed). Deadlines are ABSOLUTE times.
 
 ## Layout
-run.py, src/{data_loader, bayes, hmm, cost_model, search, allocation, simulator, validator, statistics}.py,
-tests/, Scenarios/{small, medium, large}/ (capital S)
+run.py, src/{data_loader, bayes, hmm, cost_model, search, allocation, simulator, validator, statistics,
+experiments}.py, tests/test_<module>.py, Scenarios/{small, medium, large}/ (capital S),
+results/<scenario>-<policy>/{plan.json, statistics.txt} + results/experiments.md (committed runs, tau 0.5),
+output/ (git-ignored default output), report.md, PROMPTS.md (prompt log), README.md.
 
 ## Build order
 1. data_loader: dataclasses; CSVs contain blank lines (skip them); capabilities split on ';'.

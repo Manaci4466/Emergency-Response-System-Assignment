@@ -317,7 +317,7 @@ the repo; a grader can now compare their own run with ours.)
 Critical on time, test rows), committed phase 6, generated the six runs with run.py into
 results/<scenario>-<policy>/ and documented them in README.md (install with `python -m pip`, run
 options, how to diff a fresh run against results/; a fresh run is byte-identical).
-**What I did:** *(fill in)*
+**What I did:** *after review found errors then prompted for test to check and modify*
 
 ---
 
@@ -356,6 +356,69 @@ in the cost model, the validator still says "valid" with fewer late warnings (1 
 shares the cost model; 8 hand-checked unit tests fail. Lesson: testing in layers. Also: R1's route to
 the Critical I2 (N1→H1→N2) uses two unreported roads at P(Blocked) = 0.135, so P(both open) =
 0.865² ≈ 0.75: valid under our beliefs, but blocked in about one world in four.
+
+---
+
+## Prompt 16 (Phase 7 merge + Phase 8 experiments) (2026-11-11 20:00, Claude Code)
+
+> (Commit, merge and push phase 7, then:)
+>
+> Phase 8: experiments (src/experiments.py, run with `python -m src.experiments`, writes results/experiments.md with markdown tables), new branch.
+> 1. tau sensitivity: tau in {0.1, 0.5, 0.6, 0.9} x 3 scenarios, CSP: deadlines met %, priority-weighted late, Critical on time, avg response, unhandled. Explain each change in one line (which roads open/close: e.g. 0.6 opens the 0.527 roads, 0.9 reconnects medium, 0.1 closes every unreported road at 0.135).
+> 2. Unreported roads (decision 2): add a parameter to edge_costs, unreported="prior"|"open" ("open" = P(Blocked) 0, status multiplier 1.0). Compare both on all scenarios.
+> 3. Unobserved traffic (decision 5): 1.0 vs the stationary expected multiplier (compute it from the HMM stationary distribution, ≈1.23).
+> 4. CSP vs greedy on all scenarios incl. priority-weighted late and Critical on time.
+> 5. Monte Carlo robustness (Notes 6, sampling): for the CSP plan at tau 0.5, sample N = 5000 worlds with a fixed seed: each road's TRUE status from its Bayes posterior, each observed road's traffic level from its HMM belief (unobserved roads: Low). Replay the plan with its fixed routes: a job starts at max(its planned time, the responder's finish time in this world); a route that contains a road that is blocked in this world fails (incident counts as missed). Report per scenario: P(at least one planned route is blocked), mean deadlines met % with the 5th–95th percentile, and the 3 incidents most often missed. Also report, for small I2, the fraction of worlds in which R1's route is blocked (expected ≈ 0.25).
+> Tests: same seed -> identical Monte Carlo result; a scenario copy where every road's posterior is certain Open and every traffic belief is certain Low gives exactly the deterministic plan's numbers; tau monotonicity: a higher tau never makes fewer roads usable.
+> Print all tables and add a short "what this shows" paragraph per table to report.md (Testing & results).
+
+**Response:** committed phase 7 (report Table 2 incl. the layered-testing finding, Prompt 15), merged
+and pushed. Phase 8: `unreported` option in edge_costs/simulate, `stationary_distribution` in hmm.py
+(×1.2264 = 155.75/127), src/experiments.py with the 5 experiments. Design choice in the replay: a
+responder whose route is blocked is stranded, so its later jobs (fixed routes starting where it never
+arrived) are missed too. Added section 6 on its own initiative: Monte Carlo per tau, because τ 0.6
+doubles small's planned deadlines met (28.6% → 57.1%) but is slightly worse in the sampled worlds
+(36.2% → 35.1%). Small I2: route blocked in 0.249 of worlds (analytic 0.252). Tests: the requested
+three plus the unreported option, the stationary distribution, I2 ≈ 0.25, and a forced-blocked-road
+stranding test (its first version was wrong: in the certain world R1 drives N1→N2 directly; fixed;
+a no-stranding mutant is caught). 95 tests pass. Report: Tables 4–6 with "what this shows".
+**What I did:** *after review created tests and modified code.*
+
+---
+
+## Prompt 17 (Phase 8 fixes before commit) (2026-11-11, Claude Code)
+
+> Before committing phase 8, fix these (each with a test), then finish:
+> 1. Experiment 3 bug: the stationary multiplier is computed from small's traffic model and applied to all scenarios. Medium has a different traffic_probabilities.json (its stationary multiplier is 1.25). Compute it per scenario and show it per row.
+> 2. Robustness for unseen scenarios: compute MAX_SPEED from the scenario's roads instead of hard-coding 30. At the start of a run, check that every road is at least as long as the straight line between its ends; if not, print a warning and use h = 0 (UCS). Mention the heuristic used in the statistics.txt details. Tests: a scenario copy with a 40 m/s road; a copy with one road shorter than the straight line (must fall back and still equal Floyd–Warshall).
+> 3. If the CSP node limit is hit in any round, print a warning and add a line to statistics.txt. Test with a tiny node_limit.
+> 4. statistics.txt extras: add "Priority-weighted missed (late or unhandled)" and "Critical on time: x/y" (requested earlier, missing in statistics.py).
+> 5. Regenerate and commit results/<scenario>-<policy>/ (3 scenarios × csp/greedy, tau 0.5) and results/experiments.md.
+> 6. Put the attached README.md in the repo root. Verify EVERY command, number, file name and claim in it against the code and a fresh run (test count, console output, results table, section 4 point 4 about the fallback), and fix any mismatch in the README. Update the layout section of CLAUDE.md.
+> 7. Log in PROMPTS.md (this prompt word for word + what changed). Then commit phase 8, merge into main, push.
+
+**Response (what changed):**
+1. Confirmed the bug (Claude Code's own: it applied small's 1.2264 to every scenario and labelled it
+   with small's π). Medium's own value is 1.25. `stationary_multiplier(scenario)` per scenario, shown
+   per row; medium's row keeps 33.3% / 52 but avg response 41.8 s (was 41.2 s). Tests: helper per
+   scenario and the experiment's rows (medium 1.25).
+2. `max_speed(scenario)`, `straight_line_violations`, `heuristic_description` in search.py; `astar`
+   falls back to UCS when a road is shorter than the straight line; run.py warns; statistics.txt
+   "Route search: ..." line. Tests: 40 m/s copy (consistent, = Floyd–Warshall); short-road copy
+   (astar == ucs, = Floyd–Warshall). Removing the fallback is caught. While checking, found that on
+   the requested copy (large N16→N17 = 1 m) plain A* happens to stay optimal; searched all
+   single-road copies: 22 make plain A* suboptimal, e.g. medium N9→N7 = 1 m gives N2→N7 10.8 s
+   instead of 7.7 s; added that as a test showing the fallback is really needed.
+3. Found a real bug: with node_limit < incidents in a round, no complete plan was found and the
+   round's incidents silently vanished (neither assigned nor unhandled). Now falls back to greedy for
+   that round and flags it; `--node-limit` option; warning printed and written to statistics.txt.
+   Test: node_limit = 1 (nothing vanishes, warning in stdout and file, no warning by default).
+4. `weighted_missed` and `critical_on_time` in Statistics and statistics.txt (+ definition);
+   experiments reuse them. Hand-made test: 4 + 1 = 5, Critical 1/1.
+5. Regenerated results/ (plans unchanged, statistics.txt +4 lines) and results/experiments.md.
+6. CLAUDE.md run/layout updated. The README attachment did not arrive: waiting for it.
+102 tests pass.
+**What I did:** *(fill in)*
 
 ---
 

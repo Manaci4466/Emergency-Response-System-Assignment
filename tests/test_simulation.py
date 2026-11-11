@@ -68,6 +68,8 @@ def test_statistics_hand_made() -> None:
     assert st.late == [("I2", pytest.approx(20.0))]
     assert st.unhandled == ["I3"]
     assert st.per_priority["Low"].handled == 0
+    assert st.weighted_missed == 4 + 1  # I2 late (High 4) + I3 unhandled (Low 1)
+    assert st.critical_on_time == "1/1"
     text = format_statistics(st)
     assert text.splitlines()[:6] == [
         "System statistics:", "",
@@ -77,6 +79,8 @@ def test_statistics_hand_made() -> None:
         " * Deadlines met: 33.3%",
     ]
     assert "EXPECTED times" in text
+    assert " * Critical on time: 1/1" in text
+    assert " * Priority-weighted missed (late or unhandled): 5" in text
 
 
 @pytest.mark.parametrize("name", NAMES)
@@ -97,3 +101,26 @@ def test_run_py_end_to_end(name: str, tmp_path: Path) -> None:
     assert [e["time"] for e in plan] == sorted(e["time"] for e in plan)
     stats = (out / "statistics.txt").read_text()
     assert stats.startswith("System statistics:")
+
+
+def test_node_limit_hit_is_flagged_and_nothing_vanishes(tmp_path: Path) -> None:
+    s = load_scenario(SCENARIOS / "small")
+    res = simulate(s, node_limit=1)  # too small to finish even one plan in the 4-incident round
+    assert 0.0 in res.limit_rounds
+    assigned = [a.incident_id for a in res.assignments]
+    assert sorted(assigned + res.unhandled) == sorted(i.id for i in s.incidents)  # greedy fallback
+
+    out = tmp_path / "small"
+    proc = subprocess.run([sys.executable, "run.py", str(SCENARIOS / "small"), "--out", str(out),
+                           "--node-limit", "1"], cwd=ROOT, capture_output=True, text=True, check=True)
+    assert "WARNING: CSP node limit (1) hit" in proc.stdout
+    assert "WARNING: CSP node limit (1) hit" in (out / "statistics.txt").read_text()
+    # with the default limit there is no warning
+    assert simulate(s).limit_rounds == []
+
+
+def test_heuristic_is_mentioned_in_statistics(tmp_path: Path) -> None:
+    out = tmp_path / "small"
+    subprocess.run([sys.executable, "run.py", str(SCENARIOS / "small"), "--out", str(out)],
+                   cwd=ROOT, capture_output=True, text=True, check=True)
+    assert " * Route search: A*, h = straight-line distance / 30 m/s" in (out / "statistics.txt").read_text()
