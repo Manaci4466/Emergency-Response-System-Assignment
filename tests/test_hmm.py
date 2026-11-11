@@ -11,7 +11,7 @@ SCENARIOS = Path(__file__).resolve().parent.parent / "Scenarios"
 
 
 def umbrella() -> TrafficModel:
-    """Practicum 2 Q5: states R(ain)/D(ry), evidence +/- (umbrella or not), exact fractions."""
+    """Classic umbrella HMM: states R(ain)/D(ry), evidence +/- (umbrella or not), exact fractions."""
     return TrafficModel(
         initial={"R": F(1, 2), "D": F(1, 2)},
         transition={"R": {"R": F(3, 4), "D": F(1, 4)}, "D": {"R": F(1, 4), "D": F(3, 4)}},

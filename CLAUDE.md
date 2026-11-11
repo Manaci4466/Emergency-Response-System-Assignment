@@ -1,4 +1,4 @@
-# Emergency Response Decision-Support System (AI practicum, UAntwerpen)
+# Emergency Response Decision-Support System (Artificial Intelligence, UAntwerpen)
 
 Student project. The student must be able to explain and defend every line in an oral exam,
 so understanding matters more than features.
@@ -6,8 +6,8 @@ so understanding matters more than features.
 ## How to work with me
 - Build ONE phase at a time (order below). Don't write the whole system in one go.
 - Before writing code for a phase: explain the concept in at most 5 lines and link it to the course
-  (Notes 1 = search / A*, Notes 2 = CSPs, Notes 6 = Bayes nets / sampling, Notes 8 = HMMs,
-  practicum 1 = search + CSP exercises; the notes are UC Berkeley CS 188 Notes, not in the repo).
+  (Notes 1 = search / A*, Notes 2 = CSPs, Notes 6 = Bayes nets / sampling, Notes 8 = HMMs;
+  the notes are UC Berkeley CS 188 Notes, not in the repo).
 - Keep code simple, typed, commented where the theory shows up. Standard library only (+ pytest).
 - Every phase ends with a test that passes. Show me the command to run it.
 - If you are unsure about a number or a property (admissible, optimal, ...), write a test instead of
@@ -61,6 +61,6 @@ Docs: Doxygen-tagged docstrings everywhere (@brief/@param/@return/@exception/@no
 
 ## Known test values
 - Bayes, small N1->N2 (Rain; Blocked, Blocked, Congested): O 0.014, C 0.459, B 0.527.
-- HMM, practicum 2 Q5 umbrella (with Fraction): P(Y) = 15/128, P(Rain3 | +,+,-) = 2/5.
+- HMM, classic umbrella example (with Fraction): P(Y) = 15/128, P(Rain3 | +,+,-) = 2/5.
 - A* must equal UCS (h = 0) on every node pair.
 - Loader counts (nodes/roads/responders/incidents): small 5/14/4/7, medium 12/30/10/12, large 26/60/10/20.

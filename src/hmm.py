@@ -59,7 +59,7 @@ def forward(model: TrafficModel, observations: Sequence[str]) -> tuple[Belief, f
     @param model The HMM tables.
     @param observations Observed levels in time order.
     @return (P(X_n | e_1..e_n), likelihood P(e_1..e_n)).
-    @note Checked exactly with fractions on the practicum umbrella example: P(Rain_3 | +,+,-) = 2/5,
+    @note Checked exactly with fractions on the classic umbrella example: P(Rain_3 | +,+,-) = 2/5,
     likelihood 15/128.
     """
     belief: Belief = dict(model.initial)  # P(X_1): no transition before observation 1

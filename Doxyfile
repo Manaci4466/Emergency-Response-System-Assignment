@@ -3,7 +3,7 @@
 # Only settings that differ from Doxygen's defaults are listed (Doxygen >= 1.9.1).
 
 PROJECT_NAME           = "Emergency Response Decision-Support System"
-PROJECT_BRIEF          = "AI practicum, UAntwerpen: Bayes net + HMM + A* + CSP"
+PROJECT_BRIEF          = "Artificial Intelligence, UAntwerpen: Bayes net + HMM + A* + CSP"
 OUTPUT_DIRECTORY       = docs
 
 # Python sources, the entry point, the mutation sweep, the README as the main page and the report.
