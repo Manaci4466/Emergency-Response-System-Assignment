@@ -2,7 +2,7 @@
 
 1-4: sensitivity of the design decisions (tau, unreported roads, unobserved traffic, policy).
 
-5-6: Monte Carlo robustness (Notes 6, sampling). The plan is made with EXPECTED costs; here we
+5-6: Monte Carlo robustness (prior sampling, Notes 6). The plan is made with EXPECTED costs; here we
 sample N "true" worlds and replay the FIXED plan in each:
   - each road's true status ~ its Bayes posterior (unreported roads: the prior marginal),
   - each observed road's true traffic level ~ its HMM belief at t = 0 (unobserved roads: Low),
@@ -170,7 +170,7 @@ def monte_carlo(
     n: int = N_WORLDS,
     seed: int = SEED,
 ) -> MonteCarloResult:
-    """@brief Replay a fixed plan in n sampled worlds (Notes 6, sampling).
+    """@brief Replay a fixed plan in n sampled worlds (prior sampling, Notes 6).
     @param scenario The scenario.
     @param assignments The plan to replay (its routes are fixed).
     @param status Road status beliefs to sample from (default: the Bayes posteriors).

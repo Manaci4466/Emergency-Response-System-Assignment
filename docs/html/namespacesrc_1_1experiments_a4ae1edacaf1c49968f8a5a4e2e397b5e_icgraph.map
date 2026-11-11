@@ -1,6 +1,6 @@
 <map id="src.experiments._sample" name="src.experiments._sample">
 <area shape="rect" id="Node000001" title="Draw one value from a discrete distribution (inverse CDF, keys in a fixed order)." alt="" coords="661,29,848,55"/>
-<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (Notes 6, sampling)." alt="" coords="440,22,613,62"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (prior sampling, Notes 6)." alt="" coords="440,22,613,62"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="647,45,614,45,614,39,647,39"/>
 <area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#a8c278366eba68101ec9598fea0adba39" title="Run all experiments." alt="" coords="217,29,392,55"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="426,45,392,45,392,39,426,39"/>

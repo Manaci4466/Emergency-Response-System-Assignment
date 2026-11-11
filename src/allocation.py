@@ -1,5 +1,5 @@
-"""@brief Phase 5: responder allocation as a CSP, solved per round (practicum 1: backtracking, MRV,
-forward checking) with branch and bound on a lexicographic objective.
+"""@brief Phase 5: responder allocation as a CSP, solved per round (Notes 2, practicum 1: backtracking,
+MRV, forward checking) with branch and bound on a lexicographic objective.
 
 One round = the incidents that become known at time `now` (no clairvoyance).
   - Variables : this round's incidents.
@@ -187,8 +187,8 @@ def allocate(
 ) -> AllocationResult:
     """@brief Solve ONE round with backtracking + MRV + forward checking + branch and bound.
 
-    Forward checking recomputes every remaining incident's ON-TIME set after each assignment. An empty
-    set does not fail the branch (deadlines are soft): its weight is added to a lower bound, and the
+    Forward checking (Notes 2), adapted to soft deadlines: instead of pruning domains, it recomputes
+    every remaining incident's ON-TIME set after each assignment. An empty set does not fail the branch: its weight is added to a lower bound, and the
     branch is pruned when (bound, response time so far) ≥ the best plan found. The bound is valid
     because extra jobs only make a responder free later and elsewhere, which by the triangle
     inequality of shortest paths never makes it arrive earlier.
