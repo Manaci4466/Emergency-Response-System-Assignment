@@ -124,6 +124,35 @@ large N16↔N5 (0.527). Also tested that every unreported road in all three scen
 ---
 
 
+## Prompt 8 (Phase 2 fixes + Phase 3 HMM): traffic model (2026-11-11, Claude Code)
+
+> Phase 3: HMM traffic model (src/hmm.py). First apply the 3 small fixes: sharper docstring in bayes.py (S is each report's ONLY parent, no edges between reports), compute the expected prior per scenario in test_every_road_gets_a_distribution, and validate reported_status and weather values in the loader.
+>
+> Then explain in max 5 lines: hidden state vs evidence, the two steps of the forward algorithm (time elapse, then observe + normalise), why we normalise at every step, and why forward and not Viterbi.
+> Implement:
+> - forward(model, observations) -> (belief over X_n after the last observation, likelihood P(e_1..e_n)). Convention: model.initial = P(X1), the state that emits observation 1 (no transition before it). Normalise after every step; the likelihood is the product of the normalising constants. Must also work with fractions.Fraction.
+> - predict(model, belief, steps=1): time-elapse only.
+> - traffic_beliefs(scenario) -> dict[Edge, dict[str, float]]: forward + one predict step, ONLY for roads with observations.
+> - expected_multiplier(belief, multipliers={"Low": 1.0, "Medium": 1.25, "High": 1.5}).
+> Tests:
+> - practicum 2 Q5 umbrella HMM with Fraction: P(R1)=1/2, T(R->R)=T(D->D)=3/4, E(+|R)=E(-|D)=3/4, observations +,+,- -> P(Rain3 | obs) = 2/5 and likelihood = 15/128, both exact
+> - small N4->H1: predicted P(High) ≈ 0.548; large N16->N17: predicted P(High) ≈ 0.704
+> - predicting 50 steps converges to a fixed distribution (print it: the stationary distribution)
+> - every belief sums to 1
+
+(The 3 fixes came from my review of phase 2, done with Claude chat.)
+
+**Response:** Phase 2 fixes applied, plus a load-time check on traffic levels (its own addition);
+3 typo tests. src/hmm.py (`predict`, `observe`, `forward`, `traffic_beliefs`, `expected_multiplier`)
+and tests/test_hmm.py: umbrella 2/5 and 15/128 exact; N4→H1 0.548, N16→N17 0.704; stationary
+distribution (45, 49, 33)/127. Its first stationary test (tolerance 10⁻⁹ after 50 steps) failed;
+it explained the geometric convergence (≈0.7⁵⁰ ≈ 2·10⁻⁸), loosened to 10⁻⁶ and added an exact
+Fraction check π·T = π. 24 tests pass.
+**What I did:** *(fill in: accepted / modified, and what you checked, e.g. π·T = π for 45/127 by hand)*
+
+---
+
+
 
 <!-- Template for new entries:
 
