@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from src.allocation import id_key
 from src.data_loader import load_scenario
 from src.simulator import POLICIES, SimulationResult, simulate
-from src.statistics import Statistics, compute_statistics, format_statistics
+from src.statistics import compute_statistics, format_statistics
+from src.validator import check_statistics, validate
 
 
 def plan_entries(result: SimulationResult) -> list[dict]:
@@ -26,7 +28,8 @@ def plan_entries(result: SimulationResult) -> list[dict]:
     ]
 
 
-def main(argv: list[str] | None = None) -> Statistics:
+def main(argv: list[str] | None = None) -> int:
+    """Returns the exit code: 0 if the written plan is valid, 1 if the validator finds errors."""
     parser = argparse.ArgumentParser(description="Emergency response decision-support system")
     parser.add_argument("scenario", type=Path, help="scenario folder, e.g. Scenarios/small")
     parser.add_argument("--out", type=Path, default=None, help="output folder (default output/<name>)")
@@ -52,8 +55,19 @@ def main(argv: list[str] | None = None) -> Statistics:
     print(f"{args.scenario.name} ({header}): {stats.handled}/{stats.total} handled, "
           f"{stats.responders_used} responders, avg response {avg}, "
           f"deadlines met {stats.deadlines_met_pct:.1f}% -> {out}")
-    return stats
+
+    # Validate what was WRITTEN, read back from disk, with the independent validator.
+    plan = json.loads((out / "plan.json").read_text())
+    errors, warnings = validate(plan, scenario, tau=args.tau,
+                                unobserved_traffic=args.unobserved_traffic)
+    if not errors:  # the statistics check assumes a schema-valid plan
+        errors += check_statistics(plan, scenario, (out / "statistics.txt").read_text(),
+                                   tau=args.tau, unobserved_traffic=args.unobserved_traffic)
+    for issue in errors:
+        print(f"  ERROR {issue.code}: {issue.message}")
+    print(f"plan valid: {len(errors)} errors, {len(warnings)} warnings")
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

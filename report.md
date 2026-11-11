@@ -139,6 +139,7 @@ truth.
 | Committing phase 4 | Ran `pytest \| tail && git commit`: committed while 7 tests failed | **LLM process error, caught and explained**: the pipe hides pytest's exit code; the failures came from a stale `.pyc` left by its own mutation check (same second, same file size). It verified the committed code was correct, cleared the cache and now commits only on pytest's own exit code | An LLM's process needs checking too, not only its code |
 | Phase 5 test numbers from the reviewing LLM (Prompt 11) | Reviewer predicted greedy would leave the Critical I4 to R4 (arrival 147.4) | **Collaboration in both directions**: the implementing LLM checked the numbers against the cost model before writing tests and found greedy queues R2 behind I1 (arrival 89.6, still late); the tests use the verified value | The reviewing LLM's prediction was wrong; it was caught by verifying instead of trusting it |
 | Phase 5 mutation testing (Prompts 11–12) | An over-strong pruning bound and removing pruning both passed every test, brute force included | **Modified**: hand-made assignment trap (first solution 11 s, optimum 4 s) and a `prune=False` comparison (28 vs 202 nodes on large); the reviewing LLM's suggested "CSP < brute force" assertion sounded reasonable but tested the wrong thing (11 / 7 / 202 nodes even without pruning, because brute force counts every incident order) | On the real rounds the first plan found is already optimal, so pruning bugs are invisible without targeted tests |
+| Phase 7 validator review (Prompt 15) | Validator catches 13/13 injected faults and planner bugs | **Accepted, limitation found by me**: with Congested ×1.0 the validator still says "valid" (it shares the cost model); only the hand-checked unit tests fail | Testing in layers: validator = plan vs model, hand-calculated tests = model vs independent numbers |
 
 ## Testing & results
 
@@ -188,11 +189,39 @@ truth.
 | Statistics on a hand-made result: 2 handled (1 late) + 1 unhandled | deadlines met 1/3 = 33.3%; average over the 2 handled only | pass |
 | `run.py` end to end, all scenarios | plan.json has exactly the 4 keys with the right types, sorted by time | pass |
 | Mutations: rounds processed latest-first / all incidents known at t = 0 | no-clairvoyance test fails / 7 tests fail | caught |
+| Validator on the real plans (3 scenarios × CSP/greedy) | 0 errors; warnings = the planner's late incidents (5 / 1 / 7); statistics.txt matches a recomputation from plan.json | pass |
+| Validator imports | never `search`, `allocation` or `simulator` (checked with `ast`) | pass |
+| Mutations in the validator: forgets the responder moved / no overlap check / ignores multipliers | 18 / 2 / 9 tests fail | caught |
 
 Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
 only comparing them with each other, every returned path is re-costed from its roads and compared with an
 independent Floyd–Warshall reference written in the test. Each test was itself checked by **mutation
 testing** (injecting a known bug and confirming a test fails).
+
+**Table 2 – Validator fault injection** (`validator.py`: reads only `plan.json` + raw files, never the
+planner's search/allocation code; each fault must give exactly the expected error)
+
+| Injected fault | Expected error | Caught |
+|---|---|---|
+| Drop a middle path node | no_road | yes |
+| Route through small N1→N2 (blocked at τ 0.5) | blocked_road | yes |
+| Wrong first node / wrong last node | path_start / path_end | yes / yes |
+| Incapable responder | capability | yes |
+| Start before the incident timestamp / R4 before 10 | before_timestamp / before_available | yes / yes |
+| Same incident twice | duplicate | yes |
+| Two overlapping jobs of one responder | overlap | yes |
+| Unknown id / missing key / wrong type | unknown_id / schema / schema | yes |
+| Repeated node in a path | repeated_node | yes |
+| *Planner bug:* allocation ignores busy responders | overlap | yes, all 3 scenarios |
+| *Planner bug:* A\* may use blocked roads | blocked_road | small, large; **not medium** (no route changes) |
+| *Model bug:* Congested ×1.0 instead of ×1.5 | — | **no** ("valid", even fewer late warnings); 8 unit tests fail |
+
+Testing works in layers. The validator checks the *plan against the model*; it shares `cost_model`
+on purpose (it is the definition of travel time), so a wrong cost model makes planner and validator
+agree on wrong numbers. The unit tests with hand-calculated values (e.g. 56.41 s) check the *model
+against independent calculations*. Neither layer is enough on its own. "Valid" means every hard
+constraint holds under our beliefs (roads with P(Blocked) < τ, expected travel times), not that the
+plan works in reality.
 
 **Table 3 – Scenario results** (τ = 0.5; expected times in seconds; runs committed in `results/`)
 
