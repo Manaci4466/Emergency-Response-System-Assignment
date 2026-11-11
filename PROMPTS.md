@@ -268,7 +268,11 @@ added a `prune` flag plus a test: same answer with and without pruning, strictly
 (7 vs 11) and large (28 vs 202). Removing pruning is now caught. Verified the MRV claim by mutation
 (id order: R10 does I2 first, I3 late at 41.6, late weight 8 vs 4) and added it to the docstring.
 49 tests pass. Committed, not merged or pushed.
-**What I did:** *(fill in)*
+**What I did:** accepted; my suggested assertion was weak; Claude added prune=False and a real pruning
+test, verified by mutation. (Re-checked on my copy: 49 pass; removing pruning again makes the new test
+fail on small and large.) This is the second time the reviewing LLM was wrong in phase 5: the
+assertion sounded reasonable but tested the wrong thing (brute force counts every incident order, the
+CSP only one per branch, so the CSP always has fewer nodes, with or without pruning).
 
 ---
 
