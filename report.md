@@ -76,6 +76,15 @@ further ahead converges to the stationary distribution (45, 49, 33)/127, so beli
 road-specific information. Because observation_nr has no time unit, the t = 0 belief is used for the
 whole simulation, which is likely overconfident for late incidents.
 
+**Cost model + A\* (`cost_model.py`, `search.py`, practicum 1).** The expected travel time of a road
+is distance/speed × status multiplier × traffic multiplier, where the status multiplier
+(P(O)·1 + P(C)·1.5)/(P(O)+P(C)) is the expected slowdown given that the road is passable; a road is
+unusable if P(Blocked) ≥ τ. A\* (graph search, closed set, alphabetical tie-breaking) uses
+h = straight-line distance / 30 m/s. It is admissible because every road is at least as long as the
+straight line between its ends, no road is faster than 30 m/s and all multipliers are ≥ 1, and it is
+consistent by the triangle inequality, which makes graph search with a closed set optimal. At τ = 0.5
+the medium map splits into two halves, because the only connecting road N1↔N2 has P(Blocked) = 0.83.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -103,6 +112,8 @@ whole simulation, which is likely overconfident for late incidents.
 | Phase 1: write the data loader and its test (Appendix A, Prompt 5) | Loader + 5 passing tests; CPT orientation checked with `Police[Blocked][Blocked]` and a Citizen entry | **Modified**: replaced with an asymmetric entry (`Police[Open][Congested]` = 0.06, flipped 0.08), added a weather-consistency check (Prompt 6) | A diagonal entry and a symmetric table give the same value either way round, so that test could never fail |
 | Phase 2 review: three improvements from my own review (Prompt 8) | Applied | **Modified**: sharper independence docstring, expected prior computed per scenario, unknown weather/status/traffic values rejected at load time | The all-roads test only passed because the scenarios share tables; a typo like "Blockd" would have crashed deep inside `bayes.py` |
 | Phase 3: HMM + stationary-distribution test (Prompt 8) | Its first test demanded 10⁻⁹ after 50 predict steps and **failed**; fixed with tolerance 10⁻⁶, justified by "2nd eigenvalue ≈ 0.7" | **Modified** (Prompt 9): mutation testing (4 typical HMM bugs) showed a transition before observation 1 passed every test, so I added a one-observation test; corrected the eigenvalue to 0.742 (0.742⁵⁰ ≈ 3·10⁻⁷) | The HMM forgets its start (umbrella prior is already stationary; 10 observations wash it out), so the P(X₁) convention needed a targeted test; a plausible LLM number did not check out |
+| Phase 4: A\* + tests (Prompt 9) | A\* and UCS share one search function; the only optimality check was "A\* = UCS" | **Modified** (Prompt 10): my mutation test showed a road-cost bug inside the shared function passed in all 3 scenarios; added differential tests (path cost recomputed from its roads + independent Floyd–Warshall) | Two programs sharing code fail the same way, so comparing them proves little; the mutant is now caught in every scenario |
+| Committing phase 4 | Ran `pytest \| tail && git commit`: committed while 7 tests failed | **LLM process error, caught and explained**: the pipe hides pytest's exit code; the failures came from a stale `.pyc` left by its own mutation check (same second, same file size). It verified the committed code was correct, cleared the cache and now commits only on pytest's own exit code | An LLM's process needs checking too, not only its code |
 
 ## Testing & results
 
@@ -133,6 +144,18 @@ whole simulation, which is likely overconfident for late incidents.
 | HMM predicted P(High): small N4→H1, large N16→N17 | 0.548, 0.704 | pass |
 | HMM stationary distribution | (45, 49, 33)/127, exact fixed point π·T = π | pass |
 | HMM convention initial = P(X₁): one observation "Low" | (0.941, 0.0554, 0.0037); off-by-one bug gives (0.925, 0.069, 0.005) and only this test fails | pass |
+| Road distance ≥ straight line; no road faster than 30 m/s | smallest ratio: small 1.017, medium 1.132, large 1.116 | pass |
+| Heuristic consistent: cost(u,v) ≥ h(u) − h(v), every usable road and goal | holds in all 3 scenarios | pass |
+| A\* = UCS = Floyd–Warshall on every node pair; path cost = sum of its roads; A\* never expands more | expanded A\*/UCS: 46/50, 144/180, 7780/8450 | pass |
+| Small: H1↔N3 blocked (0.998); N1→N2 unusable at τ 0.5, usable at τ 0.6 | as expected; N2→N1 stays usable | pass |
+| Hand-made graph: shortest in metres ≠ fastest; unreachable goal | A\* takes the faster 30 m/s detour; `None` | pass |
+| Mutation: inadmissible h (15 m/s) | consistency/straight-line tests fail in all scenarios; A\* = UCS only on large | caught |
+| Mutation: some roads costed wrong inside the shared search | before: only the hand-made graph; after differential tests: all 3 scenarios | caught |
+
+Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
+only comparing them with each other, every returned path is re-costed from its roads and compared with an
+independent Floyd–Warshall reference written in the test. Each test was itself checked by **mutation
+testing** (injecting a known bug and confirming a test fails).
 
 ## Critical reflection
 

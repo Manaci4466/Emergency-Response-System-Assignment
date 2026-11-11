@@ -183,8 +183,34 @@ test. Corrected the LLM's eigenvalue claim (0.742, not 0.7). See Prompt 9.
 belief 0.941 / 0.0554 / 0.0037, off-by-one 0.925 / 0.069 / 0.005). Added the convention test with the
 explanation comment; injected the bug → only the new test failed (1 failed, 24 passed); reverted →
 25 passed. Fixed the eigenvalue comment and the report sentence.
-**Response (phase 4):** *(see below / fill in after review)*
-**What I did:** *(fill in after reviewing phase 4)*
+**Response (phase 4):** src/cost_model.py (`EdgeCost` with base / p_blocked / status_mult /
+traffic_mult / cost, `edge_costs`) and src/search.py (`astar`, `ucs`, closed set, alphabetical ties);
+38 tests pass. Smallest distance/straight-line ratio: small 1.017, medium 1.132, large 1.116.
+Expanded A* vs UCS over all pairs: small 46/50, medium 144/180, large 7780/8450. Found that medium
+splits in two halves at tau 0.5 (N1↔N2 blocked, P = 0.83): only 72 of 144 pairs reachable.
+Mutation check: heuristic with 15 m/s (inadmissible) → consistency and straight-line tests fail in
+all scenarios, A* = UCS fails only on large.
+**What I did:** *accepted; modified the tests after mutation testing showed the shared search function was a blind spot.*
+
+---
+
+
+## Prompt 10 (Phase 4 fix: differential testing) (2026-11-11, Claude Code)
+
+> Phase 4 fix first: A* and UCS share _best_first, so a bug inside it makes both wrong the same way and "A* == UCS" still passes (a reviewer injected a cost bug in _best_first; only test_fastest_not_shortest caught it). In the every-pair test: (a) recompute each returned path's cost by summing costs[(a,b)].cost over its roads (all usable) and compare with the returned cost; (b) compare with an independent all-pairs reference written in the test itself (Floyd–Warshall). Clear __pycache__, run pytest (check its exit code), commit, merge phase-4-search into main, push.
+
+(From my review of phase 4 in Claude chat. My mutation test: "goal tested when generated" was caught
+by A* = UCS on medium and large; "some roads costed wrong during search" passed A* = UCS in all 3
+scenarios and was only caught by the tiny hand-made graph.)
+
+**Response:** added a Floyd–Warshall reference in the test file and, for every pair, checks that the
+path's roads exist, are usable and sum to the returned cost, and that A* and UCS both equal the
+reference; unreachable pairs must be ∞ in the reference too. Re-ran the cost mutant (0.9 × cost on some
+roads inside `_best_first`): now caught in all 3 scenarios. Reverted, cleared `__pycache__`, 38 pass
+(pytest exit code 0).
+Also logged the phase 4 commit incident in report.md (LLM process error: `pytest | tail` hid the exit
+code, a stale .pyc from its mutation check caused the failures).
+**What I did:** modified: found the blind spot by mutation testing; asked for differential testing.
 
 ---
 
