@@ -1,4 +1,5 @@
 """Phase 1 tests: the loader reads every scenario correctly."""
+import shutil
 from pathlib import Path
 
 import pytest
@@ -88,3 +89,22 @@ def test_reports_must_share_weather(tmp_path: Path) -> None:
     # Different weather on the OPPOSITE direction is fine: roads are directed.
     f.write_text(header + "N1,N2,Rain,Citizen,Blocked\nN2,N1,Storm,Police,Blocked\n")
     assert len(load_reports(f)) == 2
+
+
+@pytest.mark.parametrize(
+    "file, old, new, message",
+    [
+        ("road_reports.csv", "N1,N2,Rain,Citizen,Blocked", "N1,N2,Rain,Citizen,Blockd", "status"),
+        ("road_reports.csv", "Rain", "Rainy", "weather"),
+        ("observed_traffic.csv", "1,H1,N1,Low", "1,H1,N1,Lw", "level"),
+    ],
+)
+def test_unknown_values_fail_at_load_time(
+    tmp_path: Path, file: str, old: str, new: str, message: str
+) -> None:
+    folder = tmp_path / "small"
+    shutil.copytree(SCENARIOS / "small", folder)
+    path = folder / file
+    path.write_text(path.read_text().replace(old, new))
+    with pytest.raises(ValueError, match=message):
+        load_scenario(folder)

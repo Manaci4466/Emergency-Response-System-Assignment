@@ -55,6 +55,15 @@ key, so reports and traffic observations for A→B and B→A are never mixed. Th
 orientation of the input files (outer key = true state), so the Bayes and HMM code reads directly
 like the formulas in Notes 6 and 8.
 
+**Bayesian road model (`bayes.py`, Notes 6).** Each directed road is a small Bayesian network
+Weather → Status → {Citizen, Police, Sensor}, solved by enumeration in `status_posterior`. Because the
+reports are conditionally independent given the true status, their likelihoods multiply:
+P(S | w, r) ∝ P(S|w)·Π P(rᵢ|S). When the weather is observed, P(w) is the same for every status and
+cancels in the normalisation; for unreported roads the weather is hidden and summed out, giving the
+prior marginal (Open 0.685, Congested 0.18, Blocked 0.135). For example, N1→N2 in the small scenario
+(Rain; reports Blocked, Blocked, Congested) gets P(Blocked) = 0.527: just above τ = 0.5, so this road
+is avoided while its reverse direction (all reports Congested) stays usable.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -102,6 +111,9 @@ like the formulas in Notes 6 and 8.
 | CPT orientation (asymmetric entries) | Police P(Congested\|Open) = 0.06; HMM T(Low→Medium) = 0.18, E(Medium\|Low) = 0.14 | pass |
 | Blank CSV lines / `;`-split capabilities | blank and comma-only rows skipped | pass |
 | Inconsistent weather on one road | `ValueError`; opposite direction allowed | pass |
+| Bayes hand check, small N1→N2 (Rain; B, B, C) | O 0.014, C 0.459, B 0.527 | pass |
+| Bayes, no reports + Clear / no weather | P(S\|Clear) / prior marginal 0.685, 0.18, 0.135 | pass |
+| Bayes, one source missing; every road in all scenarios | matches hand calculation; each sums to 1 | pass |
 
 ## Critical reflection
 

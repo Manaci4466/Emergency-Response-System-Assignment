@@ -93,11 +93,33 @@ While drafting, it first claimed medium I2 is on time by chaining (19.8 s), then
 **Response:** replaced the orientation test with asymmetric entries (also for the HMM transition and
 emission tables), added pyproject.toml, requirements.txt and the weather check + test, fixed the
 comment, updated CLAUDE.md. Plain `pytest`: 6 passed.
-**What I did:** **modified** the LLM's phase 1 code after reviewing it: its orientation test could
+**What I did:** modified the LLM's phase 1 code after reviewing it: its orientation test could
 never fail (diagonal entry + symmetric table), so it proved nothing. Lesson: check that a test can fail.
 Phase 1 fixes: gave 5 fixes from my review. All applied; it also added HMM orientation checks on its
 own initiative (transition Low→Medium 0.18, flipped 0.15; emission Low→Medium 0.14, flipped 0.10)
 → **accepted** after checking the values in the JSON.
+
+---
+
+
+## Prompt 7 (Phase 2 Bayes): Bayesian road status (2026-11-11 18:00, Claude Code)
+
+> Phase 2: Bayesian road status (src/bayes.py).
+> First explain in max 5 lines: the network Weather -> Status -> {Citizen, Police, Sensor}, which variables are query / evidence / hidden, and why P(Weather) is not needed when weather is observed.
+> Implement:
+> - status_posterior(model, weather, reports): P(S | w, reports) ∝ P(S|w) · Π P(report|S), normalised. If weather is None, sum out weather with the prior.
+> - road_status_beliefs(scenario) -> dict[Edge, dict[str, float]] for EVERY road (unreported roads: no weather, no reports).
+> Tests:
+> - small N1->N2 (Rain; Blocked, Blocked, Congested) -> O 0.014, C 0.459, B 0.527 (tolerance 1e-3); put the unnormalised products in a comment
+> - no reports + Clear -> exactly P(S | Clear)
+> - no reports + no weather -> O 0.685, C 0.18, B 0.135
+> - a road with one source missing still works; every result sums to 1
+
+**Response:** src/bayes.py (`status_prior`, `status_posterior`, `road_status_beliefs`) and
+tests/test_bayes.py; 13 tests pass. Unnormalised products for N1→N2: 0.00012 / 0.00384 / 0.00441.
+Roads with P(Blocked) ≥ 0.5: small H1↔N3 (0.998), N1→N2 and N2→N4 (0.527); medium N1↔N2 (0.83);
+large N16↔N5 (0.527). Also tested that every unreported road in all three scenarios equals the prior.
+**What I did:** Accepted. Recomputed the N1→N2 products by hand. Mutation-tested with a second LLM: flipping the CPT index gives 0.614 and removing the dict() copy corrupts the CPT. The tests catch both.
 
 ---
 
