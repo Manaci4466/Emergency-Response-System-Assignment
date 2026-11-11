@@ -498,7 +498,7 @@ during the project (limitations, where the LLMs helped and misled me, next steps
 them), marked as editable. Appendix A: Prompt 1 verbatim plus short verbatim quotes from Prompts 6, 9, 10,
 12 and 17 (checked word for word against this log). Result: 3 pages including the title block, appendix on
 page 4.
-**What I did:** accepted; I will edit the critical reflection in my own words where needed.
+**What I did:** accepted; edit the critical reflection in my own words where needed.
 
 ---
 
