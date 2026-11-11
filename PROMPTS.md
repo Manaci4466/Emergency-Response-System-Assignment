@@ -472,8 +472,9 @@ boundary test → **35 of 35 caught**; also an opt-in pytest wrapper (RUN_MUTATI
 recursed into itself (fixed by clearing the variable for the inner runs). (4) README written from scratch
 (scenario mapping 1 = small, 2 = medium, 3 = large; install, options, outputs, design, testing, results,
 limitations, layout); every number, command and console line checked against a fresh run and results/.
-(5) results regenerated: identical, all six folders present. (6) fresh clone into /tmp + new venv: see
-below. Filled in the remaining "What I did" entries. 110 passed, 1 skipped.
+(5) results regenerated: identical, all six folders present. (6) fresh clone into /tmp + new venv:
+pip install OK, `pytest` 110 passed / 1 skipped, `run.py Scenarios/small` exit 0 with a plan identical to
+results/small-csp, mutation sweep 35/35 in the clone: nothing failed. Filled in the remaining "What I did" entries. 110 passed, 1 skipped.
 **What I did:** accepted; confirmed the scenario mapping (1 = small, 2 = medium, 3 = large).
 
 ---
