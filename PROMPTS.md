@@ -216,6 +216,62 @@ code, a stale .pyc from its mutation check caused the failures).
 
 
 
+## Prompt 11 (Phase 5 CSP allocation) (2026-11-11, Claude Code)
+
+> Phase 5: CSP allocation (src/allocation.py), new branch phase-5-allocation.
+> First explain in max 8 lines: variables, domains, hard vs soft constraints, why MRV, what forward checking removes here, and why an empty on-time set does not fail the branch (soft deadlines) but adds a guaranteed penalty used by branch and bound.
+> Design (CLAUDE.md decisions 7-10):
+> - ResponderState(location, free_at); initially start_location and time_until_available.
+> - allocate(scenario, costs, now, incidents, states) -> (assignments, unhandled, new_states, stats). Solves ONE round: the incidents that become known at `now`.
+> - Variables = this round's incidents. Domain = responders with the capability that can reach the incident (unary constraints, filter first). Empty domain -> unhandled.
+> - Assigning r to i in a branch: start = max(now, r.free_at), arrival = start + A* time from r.location, finish = arrival + time_required; in that branch r becomes (incident location, finish). So one responder can take several incidents in a round, in assignment order (queueing).
+> - Objective, lexicographic: (1) sum of priority weights of LATE incidents (Critical 8, High 4, Medium 2, Low 1), (2) total response time Σ(arrival − timestamp).
+> - Backtracking. MRV: the unassigned incident with the fewest ON-TIME responders given the branch's current states (ties: higher weight, earlier deadline, id). Values by earliest arrival. Forward checking: after each assignment recompute the on-time sets of the remaining incidents; each empty one adds its weight to a lower bound; prune when (bound, response time so far) >= best. Node limit 100000 -> return best found and flag it.
+> - Assignment record: responder_id, incident_id, path, start (= the plan's "time"), arrival, finish, late.
+> - greedy(...) baseline with the same signature: incidents in id order, each gets the capable responder with the earliest arrival.
+> - Document the limitation: the job order on one responder follows the search order, so the CSP is not exhaustive over all job orders.
+> Tests (round t = 0) — verify my numbers against the cost model first:
+> - small: I4->R2 (≈56.4, on time), I1->R4 (≈81.1, late by ≈1.1 s), I2->R1 via N1->H1->N2 (≈92.2, late), I3->R3 (≈131.2, on time); missed weight 12
+> - greedy on the same round sends R2 to I1 and misses I4; CSP missed weight < greedy's
+> - medium: I3->R10 (arrival 0), I2->R10 queued (start 10, arrival ≈20.78, late by 0.78 s); R9 cannot reach the N2 side
+> - an incident with a capability nobody has -> unhandled, the rest still assigned
+> - brute force on small t=0: every order of the 4 incidents × every responder choice; CSP objective must equal the brute-force optimum; print nodes explored by CSP vs brute forceµ
+
+**Response:** verified the numbers against the cost model first: small and medium all correct, but
+the reviewing LLM's greedy prediction was wrong: greedy does not leave I4 to R4 (147.4), it queues R2
+behind I1 (arrival 89.6, still late; late weight 16 vs CSP 12). Tests use the verified value.
+src/allocation.py (`allocate`, `greedy`, `initial_states`) and tests/test_allocation.py. Brute force
+extended to all three t = 0 rounds: CSP equals the optimum (nodes 7 / 7 / 28 vs 96 / 1,440 / 15,360
+plans). Own mutation check: an over-strong bound survived every test (the first plan found is already
+optimal on real rounds) → added a hand-made assignment trap (first solution 11 s, optimum 4 s) that
+catches it. 46 tests pass.
+**What I did:** accepted after my own review. Mutation-tested: no MRV (caught), busy responder ignored
+(caught), handling time forgotten when queueing (caught), no pruning (not caught, see Prompt 12).
+Traced MRV on small t = 0 (I2 → I4 → I1 → I3; forward checking empties I1's on-time set after R2
+takes I4). My greedy prediction (R4 at 147.4) was wrong; Claude Code caught it by checking against
+the cost model.
+
+---
+
+## Prompt 12 (Phase 5 additions + log) (2026-11-11 19:20, Claude Code)
+
+> Yes: add phase 5 to report.md and PROMPTS.md (log that the reviewing LLM's greedy prediction (R4 at 147.4) was wrong and that you caught it by checking against the cost model), commit, merge into main, push. Two small additions first:
+> - assert in the brute-force test that the CSP explores fewer nodes than brute force evaluates plans (removing pruning currently goes unnoticed)
+> - add to the allocation.py docstring: because assignment order also fixes the job order of a shared responder, MRV here affects solution quality, not only speed (removing MRV makes medium t=0 worse)
+
+Followed by: "don't merge and push yet. I still want to verify something."
+
+**Response:** checked the suggested assertion first by removing pruning: the CSP still needs only
+11 / 7 / 202 nodes against 96 / 1,440 / 15,360 brute-force plans, so "CSP < brute force" cannot detect
+missing pruning (one incident order per branch vs all orders). Kept it (true, commented as weak) and
+added a `prune` flag plus a test: same answer with and without pruning, strictly fewer nodes on small
+(7 vs 11) and large (28 vs 202). Removing pruning is now caught. Verified the MRV claim by mutation
+(id order: R10 does I2 first, I3 late at 41.6, late weight 8 vs 4) and added it to the docstring.
+49 tests pass. Committed, not merged or pushed.
+**What I did:** *(fill in)*
+
+---
+
 <!-- Template for new entries:
 
 ## Prompt N: <topic> (<date time>, <tool>)
