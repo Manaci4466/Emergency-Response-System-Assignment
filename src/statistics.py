@@ -1,11 +1,12 @@
-"""Phase 6b: performance statistics and the statistics.txt text.
+"""@brief Phase 6b: performance statistics and the statistics.txt text.
 
 Definitions (all times in seconds):
-  handled            = incidents with an assigned responder
-  responders used    = distinct responders with at least one assignment
-  response time      = arrival − incident timestamp, averaged over HANDLED incidents only
-  deadlines met (%)  = on-time arrivals (arrival <= deadline) / ALL incidents; unhandled = missed
-  weighted missed    = Σ priority weight (Critical 8, High 4, Medium 2, Low 1) of late or unhandled
+  - handled            = incidents with an assigned responder
+  - responders used    = distinct responders with at least one assignment
+  - response time      = arrival - incident timestamp, averaged over HANDLED incidents only
+  - deadlines met (%)  = on-time arrivals (arrival ≤ deadline) / ALL incidents; unhandled = missed
+  - weighted missed    = Σ priority weight (Critical 8, High 4, Medium 2, Low 1) of late or unhandled
+
 These are EXPECTED times under the model (Bayes road status + HMM traffic), not observed ground truth.
 """
 from __future__ import annotations
@@ -19,6 +20,13 @@ from src.data_loader import PRIORITIES, Incident
 
 @dataclass(frozen=True)
 class PriorityStats:
+    """@brief Counts for one priority level.
+
+    @par Fields
+    - total: incidents of this priority.
+    - handled: of which assigned.
+    - on_time: of which on time.
+    """
     total: int
     handled: int
     on_time: int
@@ -26,6 +34,18 @@ class PriorityStats:
 
 @dataclass(frozen=True)
 class Statistics:
+    """@brief All statistics of one plan.
+
+    @par Fields
+    - total, handled, on_time: incident counts.
+    - responders_used: distinct responders with at least one assignment.
+    - avg_response_time: over handled incidents, None if nothing was handled.
+    - deadlines_met_pct: on-time / ALL incidents, in percent.
+    - per_priority: priority -> PriorityStats.
+    - late: (incident id, seconds late) for each late incident.
+    - unhandled: unhandled incident ids.
+    - weighted_missed: Σ priority weight of late or unhandled incidents.
+    """
     total: int
     handled: int
     responders_used: int
@@ -39,6 +59,9 @@ class Statistics:
 
     @property
     def critical_on_time(self) -> str:
+        """@brief Critical incidents on time, as "on time/total".
+        @return E.g. "1/2", or "0/0" if there are no Critical incidents.
+        """
         c = self.per_priority.get("Critical")
         return f"{c.on_time}/{c.total}" if c else "0/0"
 
@@ -46,6 +69,13 @@ class Statistics:
 def compute_statistics(
     incidents: Sequence[Incident], assignments: Sequence[Assignment], unhandled: Sequence[str]
 ) -> Statistics:
+    """@brief Compute the statistics of a plan.
+    @param incidents All incidents of the scenario (the denominator of deadlines met).
+    @param assignments The plan's assignments.
+    @param unhandled Ids of unhandled incidents.
+    @return The Statistics.
+    @exception ValueError If an incident is assigned more than once.
+    """
     by_id = {i.id: i for i in incidents}
     arrival = {a.incident_id: a.arrival for a in assignments}
     if len(arrival) != len(assignments):
@@ -80,7 +110,15 @@ def compute_statistics(
 
 
 def format_statistics(stats: Statistics, header: str = "", notes: Sequence[str] = ()) -> str:
-    """notes: extra detail lines from the run (heuristic used, node-limit warnings)."""
+    """@brief The text of statistics.txt.
+
+    Starts with the four required lines in the assignment's format, then details and a Definitions
+    block.
+    @param stats The statistics.
+    @param header Settings shown after "Details" (policy, tau, ...).
+    @param notes Extra detail lines from the run (heuristic used, node-limit warnings).
+    @return The complete text.
+    """
     avg = "n/a" if stats.avg_response_time is None else f"{stats.avg_response_time:.1f} s"
     lines = [
         "System statistics:",

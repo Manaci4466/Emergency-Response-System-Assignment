@@ -1,8 +1,11 @@
-"""Entry point: python run.py Scenarios/<name> [--out DIR] [--tau 0.5] [--policy csp|greedy]
-                                         [--unobserved-traffic 1.0] [--node-limit 100000]
+"""@brief Entry point of the system.
 
-Writes DIR/plan.json (list of {responder_id, incident_id, path, time}) and DIR/statistics.txt.
-Default DIR = output/<name>. Times are in seconds.
+Usage: python run.py Scenarios/<name> [--out DIR] [--tau 0.5] [--policy csp|greedy]
+[--unobserved-traffic 1.0] [--node-limit 100000]
+
+Writes DIR/plan.json (list of {responder_id, incident_id, path, time}) and DIR/statistics.txt,
+then validates the written plan with the independent validator. Default DIR = output/<name>.
+Times are in seconds. Exit code 0 = valid plan, 1 = validator errors, 2 = invalid options.
 """
 from __future__ import annotations
 
@@ -20,7 +23,12 @@ from src.validator import check_statistics, validate
 
 
 def plan_entries(result: SimulationResult) -> list[dict]:
-    """EXACTLY the four keys from the assignment; time = when the responder starts the assignment."""
+    """@brief The plan.json entries: EXACTLY the four keys from the assignment.
+
+    time = when the responder starts the assignment; entries are sorted by time, then responder id.
+    @param result The simulation result.
+    @return List of dicts ready for json.dumps.
+    """
     ordered = sorted(result.assignments, key=lambda a: (a.start, id_key(a.responder_id)))
     return [
         {"responder_id": a.responder_id, "incident_id": a.incident_id,
@@ -30,7 +38,13 @@ def plan_entries(result: SimulationResult) -> list[dict]:
 
 
 def _tau(text: str) -> float:
-    """tau must lie in (0, 1]: tau = 0 would close every road, tau > 1 is meaningless."""
+    """@brief argparse type for --tau: must lie in (0, 1].
+
+    tau = 0 would close every road; tau above 1 is meaningless.
+    @param text The command-line value.
+    @return The value as float.
+    @exception argparse.ArgumentTypeError If out of range.
+    """
     value = float(text)
     if not 0 < value <= 1:
         raise argparse.ArgumentTypeError(f"tau must be in (0, 1], got {value}")
@@ -38,8 +52,14 @@ def _tau(text: str) -> float:
 
 
 def _multiplier(text: str) -> float:
-    """Multipliers below 1 would make a road faster than its free-flow time, which breaks the
-    premise of the A* heuristic (cost >= distance / max_speed)."""
+    """@brief argparse type for --unobserved-traffic: must be ≥ 1.
+
+    A multiplier below 1 would make a road faster than its free-flow time, which breaks the premise
+    of the A* heuristic (cost ≥ distance / max_speed).
+    @param text The command-line value.
+    @return The value as float.
+    @exception argparse.ArgumentTypeError If below 1.
+    """
     value = float(text)
     if value < 1:
         raise argparse.ArgumentTypeError(f"--unobserved-traffic must be >= 1, got {value}")
@@ -47,6 +67,11 @@ def _multiplier(text: str) -> float:
 
 
 def _positive_int(text: str) -> int:
+    """@brief argparse type for --node-limit: must be ≥ 1.
+    @param text The command-line value.
+    @return The value as int.
+    @exception argparse.ArgumentTypeError If below 1.
+    """
     value = int(text)
     if value < 1:
         raise argparse.ArgumentTypeError(f"--node-limit must be >= 1, got {value}")
@@ -54,7 +79,10 @@ def _positive_int(text: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Returns the exit code: 0 if the written plan is valid, 1 if the validator finds errors."""
+    """@brief Run one scenario: load, simulate, write the outputs, validate.
+    @param argv Command-line arguments (default: sys.argv).
+    @return Exit code: 0 if the written plan is valid, 1 if the validator finds errors.
+    """
     parser = argparse.ArgumentParser(description="Emergency response decision-support system")
     parser.add_argument("scenario", type=Path, help="scenario folder, e.g. Scenarios/small")
     parser.add_argument("--out", type=Path, default=None, help="output folder (default output/<name>)")

@@ -1,4 +1,4 @@
-"""Phase 7: independent plan validator.
+"""@brief Phase 7: independent plan validator.
 
 INDEPENDENT of the planner: it reads plan.json and the raw scenario files and uses only
 data_loader and cost_model (the model's DEFINITION of travel time and P(Blocked)). It never imports
@@ -6,25 +6,26 @@ search, allocation or simulator; a test checks that. Travel times are recomputed
 costs along the path given in the plan, so a wrong route or a wrong cost in the planner shows up here.
 
 Errors (the plan breaks a hard constraint):
-  schema          entry is not {responder_id: str, incident_id: str, path: non-empty [str], time: number >= 0}
-  unknown_id      responder or incident id not in the scenario
-  duplicate       incident assigned more than once (the extra entry is not checked further)
-  capability      responder lacks the required capability
-  path_start      first node != where the responder is at that moment
-                  (start_location for its first job, the previous incident's location afterwards)
-  path_end        last node != incident location
-  no_road         consecutive nodes without a DIRECTED road between them
-  blocked_road    road with P(Blocked) >= tau
-  repeated_node   the path visits a node twice
-  before_timestamp  job starts before the incident is known (clairvoyance)
-  before_available  job starts before the responder's time_until_available
-  overlap         per responder (sorted by time) a job starts before the previous
-                  arrival + time_required (recomputed, tolerance 1e-6)
+  - schema: entry is not {responder_id: str, incident_id: str, path: non-empty list, time: number ≥ 0}
+  - unknown_id: responder or incident id not in the scenario
+  - duplicate: incident assigned more than once (the extra entry is not checked further)
+  - capability: responder lacks the required capability
+  - path_start: first node is not where the responder is at that moment
+    (start_location for its first job, the previous incident's location afterwards)
+  - path_end: last node is not the incident location
+  - no_road: consecutive nodes without a DIRECTED road between them
+  - blocked_road: road with P(Blocked) ≥ tau
+  - repeated_node: the path visits a node twice
+  - before_timestamp: job starts before the incident is known (clairvoyance)
+  - before_available: job starts before the responder's time_until_available
+  - overlap: per responder (sorted by time) a job starts before the previous arrival +
+    time_required (recomputed, tolerance 1e-6)
+
 Warnings: late (recomputed arrival > deadline) and unhandled (incident missing from the plan).
 
-LIMITATION: validity is relative to the BELIEVED road states (P(Blocked) < tau) and to EXPECTED
-travel times under the model. A valid plan can still use a road that is in reality blocked, and real
-travel times can differ; the validator cannot check the true road states, which nobody observes.
+@note LIMITATION: validity is relative to the BELIEVED road states (P(Blocked) < tau) and to EXPECTED
+travel times under the model. A valid plan can still use a road that is in reality blocked; the
+validator shares the cost model, so a wrong model is not detected here (the unit tests do that).
 """
 from __future__ import annotations
 
@@ -42,13 +43,25 @@ KEYS = {"responder_id", "incident_id", "path", "time"}
 
 @dataclass(frozen=True)
 class Issue:
+    """@brief One validation error or warning.
+
+    @par Fields
+    - code: machine-readable code (e.g. "overlap"), used by the fault-injection tests.
+    - message: human-readable explanation.
+    """
     code: str
     message: str
 
 
 @dataclass(frozen=True)
 class _Job:
-    """A schema-valid, non-duplicate plan entry, with its recomputed arrival (None if unknown)."""
+    """@brief A schema-valid, non-duplicate plan entry with its recomputed arrival (None if unknown).
+
+    @par Fields
+    - index: position in plan.json.
+    - responder_id, incident, path, time: the entry.
+    - arrival: time + recomputed travel time, None if the path uses a non-existent road.
+    """
     index: int
     responder_id: str
     incident: Incident
@@ -58,6 +71,10 @@ class _Job:
 
 
 def _schema_ok(entry: Any) -> bool:
+    """@brief Whether a plan entry has exactly the four keys with the right types.
+    @param entry One element of plan.json.
+    @return True if valid (bool is rejected as a number).
+    """
     if not isinstance(entry, dict) or set(entry) != KEYS:
         return False
     t = entry["time"]
@@ -72,10 +89,13 @@ def _schema_ok(entry: Any) -> bool:
 
 
 def travel_time(path: list[str], costs: dict[tuple[str, str], EdgeCost]) -> float | None:
-    """Expected travel time = Σ edge costs along the path (None if a road does not exist).
+    """@brief Expected travel time = Σ edge costs along the path.
 
     Uses base · status_mult · traffic_mult also for blocked roads, so the arrival can still be
     computed; the blocked road itself is reported as a separate error.
+    @param path Node ids of the route.
+    @param costs Edge costs.
+    @return The travel time in seconds, or None if a road does not exist.
     """
     total = 0.0
     for a, b in zip(path, path[1:]):
@@ -89,6 +109,13 @@ def travel_time(path: list[str], costs: dict[tuple[str, str], EdgeCost]) -> floa
 def validate(
     plan: Any, scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0
 ) -> tuple[list[Issue], list[Issue]]:
+    """@brief Validate a plan against the hard constraints.
+    @param plan The parsed plan.json.
+    @param scenario The scenario (raw data).
+    @param tau Blocked threshold used for the plan.
+    @param unobserved_traffic Multiplier used for the plan.
+    @return (errors, warnings) as lists of Issue.
+    """
     errors: list[Issue] = []
     warnings: list[Issue] = []
     if not isinstance(plan, list):
@@ -165,13 +192,24 @@ def validate(
 
 
 def _arrival(time: float, travel: float | None) -> float | None:
+    """@brief time + travel, or None if the travel time is unknown.
+    @param time Start time (s).
+    @param travel Travel time (s) or None.
+    @return The arrival time or None.
+    """
     return None if travel is None else time + travel
 
 
 def plan_statistics(
     plan: list[dict], scenario: Scenario, tau: float = 0.5, unobserved_traffic: float = 1.0
 ) -> dict[str, float | None]:
-    """The four required statistics recomputed from plan.json alone (assumes a schema-valid plan)."""
+    """@brief The four required statistics recomputed from plan.json alone.
+    @param plan A schema-valid plan.
+    @param scenario The scenario.
+    @param tau Blocked threshold.
+    @param unobserved_traffic Multiplier for roads without observations.
+    @return Dict with handled, responders_used, avg_response_time, deadlines_met_pct.
+    """
     costs = edge_costs(scenario, tau=tau, unobserved_traffic=unobserved_traffic)
     incidents = {i.id: i for i in scenario.incidents}
     arrivals: dict[str, float] = {}
@@ -201,7 +239,14 @@ def check_statistics(
     plan: list[dict], scenario: Scenario, statistics_text: str,
     tau: float = 0.5, unobserved_traffic: float = 1.0,
 ) -> list[Issue]:
-    """Compare the four lines of statistics.txt with values recomputed from plan.json."""
+    """@brief Compare the four lines of statistics.txt with values recomputed from plan.json.
+    @param plan A schema-valid plan.
+    @param scenario The scenario.
+    @param statistics_text Contents of statistics.txt.
+    @param tau Blocked threshold.
+    @param unobserved_traffic Multiplier for roads without observations.
+    @return List of "statistics" Issues (empty if everything matches within the printed precision).
+    """
     expected = plan_statistics(plan, scenario, tau, unobserved_traffic)
     errors: list[Issue] = []
     for key, pattern in _STAT_PATTERNS.items():

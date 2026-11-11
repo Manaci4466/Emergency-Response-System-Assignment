@@ -513,6 +513,34 @@ last content page. Logged Prompts 19 and 20, then committed, merged into main an
 
 ---
 
+## Prompt 21 (Code documentation + Doxygen) (2026-11-11, Claude Code)
+
+> The last thing I need you to do. For the University of Antwerp standards in general is to do documentation for the code. Also make sure it matches any UA conventions you can find. You can add this prompt to the record. commit it but do not push, because I want to review the documentation. Also already generate the hmtl file for Doxygen
+
+**Response:** searched for University of Antwerp code-documentation conventions and found none (only the
+UAntwerpen LaTeX house style for texts and theses), so it followed Doxygen's conventions for Python plus
+PEP 257. Added Doxygen-tagged docstrings (@brief, @param, @return, @exception, @note, field lists) to every
+module, class and function: 106 docstrings in 13 files, applied with a script that only replaces or inserts
+docstrings, and proved code-unchanged by comparing each file's syntax tree (docstrings removed) with the
+last commit. Tests 110 passed, mutation sweep still 35/35. Added a Doxyfile (README as main page,
+PYTHON_DOCSTRING = NO, call graphs). Doxygen was not installed and apt needs my sudo password.
+**What I did:** asked for the documentation to be added to the repo (Prompt 22).
+
+---
+
+## Prompt 22 (Publish the documentation) (2026-11-11, Claude Code)
+
+> I want you to add docs to the repo. Bring everything up to date. Add the documentation to the repos. And remove it from gitignore. for short, just make sure the documentation is visible in both repos
+
+**Response:** removed docs/ from .gitignore, added a "Code documentation" section to README.md and the
+Doxygen line to CLAUDE.md, committed the documented code and the Doxyfile, merged into main and pushed.
+Generating the HTML needs Doxygen: running a downloaded Doxygen binary was blocked by Claude Code's
+permission system (code from outside the project), so the HTML is generated after I install Doxygen with
+apt.
+**What I did:** *(fill in)*
+
+---
+
 <!-- Template for new entries:
 
 ## Prompt N: <topic> (<date time>, <tool>)

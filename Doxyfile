@@ -1,0 +1,39 @@
+# Doxygen configuration for the Emergency Response Decision-Support System.
+# Generate the HTML documentation with:   doxygen Doxyfile   ->  docs/html/index.html
+# Only settings that differ from Doxygen's defaults are listed (Doxygen >= 1.9.1).
+
+PROJECT_NAME           = "Emergency Response Decision-Support System"
+PROJECT_BRIEF          = "AI practicum, UAntwerpen: Bayes net + HMM + A* + CSP"
+OUTPUT_DIRECTORY       = docs
+
+# Python sources, the entry point, the mutation sweep, and the README as the main page.
+INPUT                  = README.md src run.py tools
+FILE_PATTERNS          = *.py *.md
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */__pycache__/*
+USE_MDFILE_AS_MAINPAGE = README.md
+
+# Python: read the @brief / @param / @return tags inside ordinary """ docstrings.
+OPTIMIZE_OUTPUT_JAVA   = YES
+PYTHON_DOCSTRING       = NO
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+SORT_MEMBER_DOCS       = NO
+JAVADOC_AUTOBRIEF      = NO
+
+# Output: HTML only, with Graphviz diagrams (call graphs, collaboration graphs).
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+SOURCE_BROWSER         = YES
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+DOT_IMAGE_FORMAT       = svg
+GENERATE_TREEVIEW      = YES
+
+# Warnings go to a file so undocumented or wrongly documented items are easy to find.
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_LOGFILE           = docs/doxygen_warnings.txt

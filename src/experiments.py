@@ -1,14 +1,17 @@
-"""Phase 8: experiments. Run with `python -m src.experiments`; writes results/experiments.md.
+"""@brief Phase 8: experiments. Run with `python -m src.experiments`; writes results/experiments.md.
 
 1-4: sensitivity of the design decisions (tau, unreported roads, unobserved traffic, policy).
-5:   Monte Carlo robustness (Notes 6, sampling). The plan is made with EXPECTED costs; here we sample
-     N "true" worlds and replay the FIXED plan in each:
-       - each road's true status ~ its Bayes posterior (unreported roads: the prior marginal),
-       - each observed road's true traffic level ~ its HMM belief at t = 0 (unobserved roads: Low),
-       - a job starts at max(its planned time, the responder's finish time in this world),
-       - a route that contains a road that is Blocked in this world fails: the incident is missed,
-         and the responder is stranded, so its later jobs (whose fixed routes start at the incident
-         it never reached) are missed too. No re-planning: this measures the plan, not the planner.
+
+5-6: Monte Carlo robustness (Notes 6, sampling). The plan is made with EXPECTED costs; here we
+sample N "true" worlds and replay the FIXED plan in each:
+  - each road's true status ~ its Bayes posterior (unreported roads: the prior marginal),
+  - each observed road's true traffic level ~ its HMM belief at t = 0 (unobserved roads: Low),
+  - a job starts at max(its planned time, the responder's finish time in this world),
+  - a route that contains a road that is Blocked in this world fails: the incident is missed, and
+    the responder is stranded, so its later jobs (whose fixed routes start at the incident it never
+    reached) are missed too.
+
+No re-planning: this measures the plan, not the planner.
 """
 from __future__ import annotations
 
@@ -38,6 +41,15 @@ Dist = dict[str, float]
 
 @dataclass(frozen=True)
 class Metrics:
+    """@brief The deterministic metrics compared across experiments.
+
+    @par Fields
+    - deadlines_met_pct: on-time / all incidents (%).
+    - weighted_missed: Σ priority weight of late or unhandled incidents.
+    - critical_on_time: "on time/total" for Critical incidents.
+    - avg_response: average response time over handled incidents (s).
+    - unhandled: number of unhandled incidents.
+    """
     deadlines_met_pct: float
     weighted_missed: int  # Σ priority weight of late OR unhandled incidents
     critical_on_time: str  # "on time / total"
@@ -46,12 +58,21 @@ class Metrics:
 
 
 def metrics(scenario: Scenario, result: SimulationResult) -> Metrics:
+    """@brief Metrics of a simulation result (reuses statistics.compute_statistics).
+    @param scenario The scenario.
+    @param result The simulation result.
+    @return The Metrics.
+    """
     st = compute_statistics(scenario.incidents, result.assignments, result.unhandled)
     return Metrics(st.deadlines_met_pct, st.weighted_missed, st.critical_on_time,
                    st.avg_response_time, len(st.unhandled))
 
 
 def _fmt(m: Metrics) -> str:
+    """@brief Format Metrics as the cells of a markdown table row.
+    @param m The metrics.
+    @return "met% | weighted | critical | avg | unhandled".
+    """
     avg = "n/a" if m.avg_response is None else f"{m.avg_response:.1f}"
     return (f"{m.deadlines_met_pct:.1f}% | {m.weighted_missed} | {m.critical_on_time} | "
             f"{avg} | {m.unhandled}")
@@ -61,11 +82,21 @@ METRIC_HEADER = "Deadlines met | Weighted missed | Critical on time | Avg respon
 
 
 def usable_roads(scenario: Scenario, tau: float) -> set[Edge]:
+    """@brief Roads that are usable at a given tau.
+    @param scenario The scenario.
+    @param tau Blocked threshold.
+    @return Set of usable (from, to) roads.
+    """
     return {e for e, c in edge_costs(scenario, tau=tau).items() if c.usable}
 
 
 def tau_changes(scenario: Scenario, tau: float, reference: float = 0.5) -> str:
-    """Which roads open or close compared with the reference tau, grouped by P(Blocked)."""
+    """@brief Which roads open or close compared with a reference tau, grouped by P(Blocked).
+    @param scenario The scenario.
+    @param tau The tau to compare.
+    @param reference The reference tau (default 0.5).
+    @return A one-line explanation, e.g. "opens N1→N2, N2→N4 (P = 0.527)".
+    """
     if tau == reference:
         return "reference"
     costs = edge_costs(scenario, tau=tau)
@@ -88,6 +119,16 @@ def tau_changes(scenario: Scenario, tau: float, reference: float = 0.5) -> str:
 
 @dataclass(frozen=True)
 class MonteCarloResult:
+    """@brief Result of replaying one plan in N sampled worlds.
+
+    @par Fields
+    - worlds: number of sampled worlds.
+    - p_any_route_blocked: fraction of worlds in which at least one planned route is blocked.
+    - mean_deadlines_met, p5_deadlines_met, p95_deadlines_met: deadlines met (%) over the worlds.
+    - most_missed: the 3 incidents missed most often, with their fraction.
+    - missed: every incident -> fraction of worlds in which it is missed (late or failed).
+    - route_blocked: incident -> fraction of worlds in which its planned route is blocked.
+    """
     worlds: int
     p_any_route_blocked: float
     mean_deadlines_met: float
@@ -99,7 +140,11 @@ class MonteCarloResult:
 
 
 def _sample(dist: Dist, rng: random.Random) -> str:
-    """Draw one value from a discrete distribution (inverse CDF, keys in a fixed order)."""
+    """@brief Draw one value from a discrete distribution (inverse CDF, keys in a fixed order).
+    @param dist Value -> probability.
+    @param rng The random generator (seeded, so results are reproducible).
+    @return The sampled value.
+    """
     u, acc = rng.random(), 0.0
     for value, p in dist.items():
         acc += p
@@ -109,6 +154,11 @@ def _sample(dist: Dist, rng: random.Random) -> str:
 
 
 def _percentile(sorted_vals: list[float], q: float) -> float:
+    """@brief Nearest-rank percentile of a sorted list.
+    @param sorted_vals Values in ascending order.
+    @param q Quantile between 0 and 1.
+    @return The percentile value.
+    """
     return sorted_vals[round(q * (len(sorted_vals) - 1))]
 
 
@@ -120,6 +170,15 @@ def monte_carlo(
     n: int = N_WORLDS,
     seed: int = SEED,
 ) -> MonteCarloResult:
+    """@brief Replay a fixed plan in n sampled worlds (Notes 6, sampling).
+    @param scenario The scenario.
+    @param assignments The plan to replay (its routes are fixed).
+    @param status Road status beliefs to sample from (default: the Bayes posteriors).
+    @param traffic Traffic beliefs to sample from (default: the HMM beliefs at t = 0).
+    @param n Number of worlds.
+    @param seed Random seed (same seed -> identical result).
+    @return The MonteCarloResult.
+    """
     status = road_status_beliefs(scenario) if status is None else status
     traffic = traffic_beliefs(scenario) if traffic is None else traffic
     incidents = {i.id: i for i in scenario.incidents}
@@ -183,11 +242,18 @@ def monte_carlo(
 
 
 def stationary_multiplier(scenario: Scenario) -> float:
-    """Expected traffic multiplier under THIS scenario's stationary distribution."""
+    """@brief Expected traffic multiplier under THIS scenario's stationary distribution.
+    @param scenario The scenario (medium has its own traffic tables: 1.25; small and large: 1.2264).
+    @return The expected multiplier.
+    """
     return expected_multiplier(stationary_distribution(scenario.traffic_model))
 
 
 def unobserved_traffic_rows(scen: dict[str, Scenario]) -> list[tuple[str, float, Metrics]]:
+    """@brief Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier.
+    @param scen Scenario name -> scenario.
+    @return List of (name, multiplier, metrics).
+    """
     rows = []
     for n, s in scen.items():
         for mult in [1.0, stationary_multiplier(s)]:
@@ -198,6 +264,9 @@ def unobserved_traffic_rows(scen: dict[str, Scenario]) -> list[tuple[str, float,
 # ------------------------------------------------------------------ report
 
 def run_all() -> str:
+    """@brief Run all experiments.
+    @return The markdown text of results/experiments.md.
+    """
     scen = {n: load_scenario(ROOT / "Scenarios" / n) for n in NAMES}
     out: list[str] = ["# Experiments", "",
                       "Generated by `python -m src.experiments`. All times are EXPECTED seconds under "
@@ -269,6 +338,7 @@ def run_all() -> str:
 
 
 def main() -> None:
+    """@brief Entry point of `python -m src.experiments`: write results/experiments.md and print it."""
     text = run_all()
     path = ROOT / "results" / "experiments.md"
     path.parent.mkdir(exist_ok=True)
