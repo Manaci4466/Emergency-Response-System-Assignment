@@ -207,3 +207,12 @@ def test_fallback_is_needed() -> None:
     assert plain[1] == pytest.approx(10.78, abs=0.01) and optimum == pytest.approx(7.7, abs=0.05)
     assert plain[1] > optimum + 1  # plain A* is wrong here
     assert astar(s, costs, "N2", "N7")[1] == pytest.approx(optimum)  # the fallback is right
+
+
+def test_tau_boundary_is_inclusive() -> None:
+    """Design decision 1: unusable if P(Blocked) >= tau. At tau EXACTLY equal to a road's
+    P(Blocked) the road must be closed; any tau above it opens the road."""
+    s = load_scenario(SCENARIOS / "small")
+    p = edge_costs(s)[("N1", "N2")].p_blocked  # 0.527...
+    assert not edge_costs(s, tau=p)[("N1", "N2")].usable
+    assert edge_costs(s, tau=p + 1e-12)[("N1", "N2")].usable
