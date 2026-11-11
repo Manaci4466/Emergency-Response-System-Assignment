@@ -5,6 +5,7 @@ Definitions (all times in seconds):
   responders used    = distinct responders with at least one assignment
   response time      = arrival − incident timestamp, averaged over HANDLED incidents only
   deadlines met (%)  = on-time arrivals (arrival <= deadline) / ALL incidents; unhandled = missed
+  weighted missed    = Σ priority weight (Critical 8, High 4, Medium 2, Low 1) of late or unhandled
 These are EXPECTED times under the model (Bayes road status + HMM traffic), not observed ground truth.
 """
 from __future__ import annotations
@@ -12,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from src.allocation import Assignment, id_key
+from src.allocation import WEIGHTS, Assignment, id_key
 from src.data_loader import PRIORITIES, Incident
 
 
@@ -34,6 +35,12 @@ class Statistics:
     per_priority: dict[str, PriorityStats]
     late: list[tuple[str, float]]  # (incident id, seconds late)
     unhandled: list[str]
+    weighted_missed: int  # Σ priority weight of late OR unhandled incidents
+
+    @property
+    def critical_on_time(self) -> str:
+        c = self.per_priority.get("Critical")
+        return f"{c.on_time}/{c.total}" if c else "0/0"
 
 
 def compute_statistics(
@@ -67,10 +74,13 @@ def compute_statistics(
         per_priority=per_priority,
         late=late,
         unhandled=sorted(unhandled, key=id_key),
+        weighted_missed=sum(WEIGHTS[by_id[i].priority] for i, _ in late)
+        + sum(WEIGHTS[by_id[i].priority] for i in unhandled),
     )
 
 
-def format_statistics(stats: Statistics, header: str = "") -> str:
+def format_statistics(stats: Statistics, header: str = "", notes: Sequence[str] = ()) -> str:
+    """notes: extra detail lines from the run (heuristic used, node-limit warnings)."""
     avg = "n/a" if stats.avg_response_time is None else f"{stats.avg_response_time:.1f} s"
     lines = [
         "System statistics:",
@@ -84,6 +94,8 @@ def format_statistics(stats: Statistics, header: str = "") -> str:
         f" * Incidents in scenario: {stats.total} (handled {stats.handled}, "
         f"unhandled {len(stats.unhandled)})",
         f" * On time: {stats.on_time} / {stats.total}",
+        f" * Critical on time: {stats.critical_on_time}",
+        f" * Priority-weighted missed (late or unhandled): {stats.weighted_missed}",
         " * Per priority (total / handled / on time):",
     ]
     for p, ps in stats.per_priority.items():
@@ -93,6 +105,7 @@ def format_statistics(stats: Statistics, header: str = "") -> str:
     lines += [
         f" * Late incidents: {late}",
         f" * Unhandled incidents: {', '.join(stats.unhandled) or 'none'}",
+        *(f" * {note}" for note in notes),
         "",
         "Definitions:",
         " * Units: seconds (s). Times are absolute simulation times from t = 0.",
@@ -101,6 +114,8 @@ def format_statistics(stats: Statistics, header: str = "") -> str:
         " * Average response time: mean of (arrival - incident timestamp) over handled incidents only.",
         " * Deadlines met: on-time arrivals (arrival <= deadline) / ALL incidents;"
         " unhandled incidents count as missed.",
+        " * Priority-weighted missed: sum of priority weights (Critical 8, High 4, Medium 2, Low 1)"
+        " of late or unhandled incidents.",
         " * All times are EXPECTED times under the model (Bayesian road status + HMM traffic),"
         " not observed ground truth.",
     ]

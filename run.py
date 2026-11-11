@@ -1,5 +1,5 @@
 """Entry point: python run.py Scenarios/<name> [--out DIR] [--tau 0.5] [--policy csp|greedy]
-                                         [--unobserved-traffic 1.0]
+                                         [--unobserved-traffic 1.0] [--node-limit 100000]
 
 Writes DIR/plan.json (list of {responder_id, incident_id, path, time}) and DIR/statistics.txt.
 Default DIR = output/<name>. Times are in seconds.
@@ -11,8 +11,9 @@ import json
 import sys
 from pathlib import Path
 
-from src.allocation import id_key
+from src.allocation import NODE_LIMIT, id_key
 from src.data_loader import load_scenario
+from src.search import heuristic_description, heuristic_is_admissible
 from src.simulator import POLICIES, SimulationResult, simulate
 from src.statistics import compute_statistics, format_statistics
 from src.validator import check_statistics, validate
@@ -37,19 +38,32 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy", choices=sorted(POLICIES), default="csp")
     parser.add_argument("--unobserved-traffic", type=float, default=1.0,
                         help="traffic multiplier for roads without observations")
+    parser.add_argument("--node-limit", type=int, default=NODE_LIMIT,
+                        help="CSP search nodes per round before the best plan so far is used")
     args = parser.parse_args(argv)
 
     scenario = load_scenario(args.scenario)
     out = args.out or Path("output") / args.scenario.name
     out.mkdir(parents=True, exist_ok=True)
 
+    # The A* heuristic needs every road to be at least as long as the straight line: check the data.
+    notes = [f"Route search: {heuristic_description(scenario)}"]
+    if not heuristic_is_admissible(scenario):
+        print(f"WARNING: {heuristic_description(scenario)}; using uniform-cost search")
+
     result = simulate(scenario, tau=args.tau, unobserved_traffic=args.unobserved_traffic,
-                      policy=args.policy)
+                      policy=args.policy, node_limit=args.node_limit)
+    if result.limit_rounds:
+        rounds = ", ".join(f"t = {t:g}" for t in result.limit_rounds)
+        warning = (f"CSP node limit ({args.node_limit}) hit in round(s) {rounds}: "
+                   f"best plan found so far used, may not be optimal")
+        print(f"WARNING: {warning}")
+        notes.append(f"WARNING: {warning}")
     stats = compute_statistics(scenario.incidents, result.assignments, result.unhandled)
     header = f"policy {args.policy}, tau {args.tau}, unobserved traffic {args.unobserved_traffic}"
 
     (out / "plan.json").write_text(json.dumps(plan_entries(result), indent=2) + "\n")
-    (out / "statistics.txt").write_text(format_statistics(stats, header))
+    (out / "statistics.txt").write_text(format_statistics(stats, header, notes))
 
     avg = "n/a" if stats.avg_response_time is None else f"{stats.avg_response_time:.1f} s"
     print(f"{args.scenario.name} ({header}): {stats.handled}/{stats.total} handled, "

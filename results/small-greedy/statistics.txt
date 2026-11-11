@@ -8,11 +8,14 @@ System statistics:
 Details (policy greedy, tau 0.5, unobserved traffic 1.0):
  * Incidents in scenario: 7 (handled 7, unhandled 0)
  * On time: 2 / 7
+ * Critical on time: 0/2
+ * Priority-weighted missed (late or unhandled): 28
  * Per priority (total / handled / on time):
      Critical 2 / 2 / 0  (0.0% on time)
      High     5 / 5 / 2  (40.0% on time)
  * Late incidents: I2 (+2.2 s), I4 (+29.6 s), I5 (+5.0 s), I6 (+34.6 s), I7 (+39.4 s)
  * Unhandled incidents: none
+ * Route search: A*, h = straight-line distance / 30 m/s (admissible, consistent)
 
 Definitions:
  * Units: seconds (s). Times are absolute simulation times from t = 0.
@@ -20,4 +23,5 @@ Definitions:
  * Responders used: distinct responders with at least one assignment.
  * Average response time: mean of (arrival - incident timestamp) over handled incidents only.
  * Deadlines met: on-time arrivals (arrival <= deadline) / ALL incidents; unhandled incidents count as missed.
+ * Priority-weighted missed: sum of priority weights (Critical 8, High 4, Medium 2, Low 1) of late or unhandled incidents.
  * All times are EXPECTED times under the model (Bayesian road status + HMM traffic), not observed ground truth.
