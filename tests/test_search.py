@@ -37,22 +37,53 @@ def test_heuristic_is_consistent(name: str) -> None:
                 assert c.cost >= h[u] - h[v] - 1e-9, (u, v, goal)
 
 
+def floyd_warshall(s: Scenario, costs: dict) -> dict[tuple[str, str], float]:
+    """Independent all-pairs reference (shares NO code with search.py).
+
+    dist[i, j] = min(dist[i, j], dist[i, k] + dist[k, j]) for every intermediate node k.
+    """
+    inf = math.inf
+    dist = {(i, j): (0.0 if i == j else inf) for i in s.nodes for j in s.nodes}
+    for (u, v), c in costs.items():
+        if c.usable:
+            dist[u, v] = min(dist[u, v], c.cost)
+    for k in s.nodes:
+        for i in s.nodes:
+            for j in s.nodes:
+                if dist[i, k] + dist[k, j] < dist[i, j]:
+                    dist[i, j] = dist[i, k] + dist[k, j]
+    return dist
+
+
 @pytest.mark.parametrize("name", NAMES)
 def test_astar_equals_ucs_on_every_pair(name: str) -> None:
+    # Differential testing. A* and UCS share _best_first, so a bug inside it can make both wrong in
+    # the same way and "A* == UCS" still passes. Hence two INDEPENDENT checks on every pair:
+    #   (a) recompute the returned path's cost from its roads (all must exist and be usable);
+    #   (b) compare with Floyd-Warshall, an all-pairs algorithm written here in the test.
     s = load_scenario(SCENARIOS / name)
     costs = edge_costs(s)
+    reference = floyd_warshall(s, costs)
     total_astar = total_ucs = pairs = 0
     for start in s.nodes:
         for goal in s.nodes:
             a, u = astar(s, costs, start, goal), ucs(s, costs, start, goal)
             assert (a is None) == (u is None), (start, goal)
             if a is None:
+                assert reference[start, goal] == math.inf, (start, goal)  # really unreachable
                 continue
             pairs += 1
-            assert a[1] == pytest.approx(u[1]), (start, goal)  # same optimal cost
-            assert a[2] <= u[2], (start, goal)  # A* never expands more than UCS
-            assert a[0][0] == start and a[0][-1] == goal
-            total_astar += a[2]
+            path, cost, expanded = a
+            assert path[0] == start and path[-1] == goal
+            # (a) the path is real and its roads add up to the returned cost
+            road_costs = [costs[(x, y)].cost for x, y in zip(path, path[1:])]
+            assert all(c is not None for c in road_costs), (start, goal, path)
+            assert cost == pytest.approx(sum(road_costs)), (start, goal)
+            # (b) independent reference: the cost is really optimal
+            assert cost == pytest.approx(reference[start, goal]), (start, goal)
+            assert u[1] == pytest.approx(reference[start, goal]), (start, goal)
+            assert expanded <= u[2], (start, goal)  # A* never expands more than UCS
+            total_astar += expanded
             total_ucs += u[2]
     print(f"\n{name}: {pairs} reachable pairs, expanded A* {total_astar} vs UCS {total_ucs}")
 

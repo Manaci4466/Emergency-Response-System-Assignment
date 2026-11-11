@@ -190,7 +190,27 @@ Expanded A* vs UCS over all pairs: small 46/50, medium 144/180, large 7780/8450.
 splits in two halves at tau 0.5 (N1↔N2 blocked, P = 0.83): only 72 of 144 pairs reachable.
 Mutation check: heuristic with 15 m/s (inadmissible) → consistency and straight-line tests fail in
 all scenarios, A* = UCS fails only on large.
-**What I did:** *(fill in after reviewing phase 4)*
+**What I did:** *accepted; modified the tests after mutation testing showed the shared search function was a blind spot.*
+
+---
+
+
+## Prompt 10 (Phase 4 fix: differential testing) (2026-11-11, Claude Code)
+
+> Phase 4 fix first: A* and UCS share _best_first, so a bug inside it makes both wrong the same way and "A* == UCS" still passes (a reviewer injected a cost bug in _best_first; only test_fastest_not_shortest caught it). In the every-pair test: (a) recompute each returned path's cost by summing costs[(a,b)].cost over its roads (all usable) and compare with the returned cost; (b) compare with an independent all-pairs reference written in the test itself (Floyd–Warshall). Clear __pycache__, run pytest (check its exit code), commit, merge phase-4-search into main, push.
+
+(From my review of phase 4 in Claude chat. My mutation test: "goal tested when generated" was caught
+by A* = UCS on medium and large; "some roads costed wrong during search" passed A* = UCS in all 3
+scenarios and was only caught by the tiny hand-made graph.)
+
+**Response:** added a Floyd–Warshall reference in the test file and, for every pair, checks that the
+path's roads exist, are usable and sum to the returned cost, and that A* and UCS both equal the
+reference; unreachable pairs must be ∞ in the reference too. Re-ran the cost mutant (0.9 × cost on some
+roads inside `_best_first`): now caught in all 3 scenarios. Reverted, cleared `__pycache__`, 38 pass
+(pytest exit code 0).
+Also logged the phase 4 commit incident in report.md (LLM process error: `pytest | tail` hid the exit
+code, a stale .pyc from its mutation check caused the failures).
+**What I did:** modified: found the blind spot by mutation testing; asked for differential testing.
 
 ---
 
