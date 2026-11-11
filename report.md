@@ -76,6 +76,15 @@ further ahead converges to the stationary distribution (45, 49, 33)/127, so beli
 road-specific information. Because observation_nr has no time unit, the t = 0 belief is used for the
 whole simulation, which is likely overconfident for late incidents.
 
+**Cost model + A\* (`cost_model.py`, `search.py`, practicum 1).** The expected travel time of a road
+is distance/speed × status multiplier × traffic multiplier, where the status multiplier
+(P(O)·1 + P(C)·1.5)/(P(O)+P(C)) is the expected slowdown given that the road is passable; a road is
+unusable if P(Blocked) ≥ τ. A\* (graph search, closed set, alphabetical tie-breaking) uses
+h = straight-line distance / 30 m/s. It is admissible because every road is at least as long as the
+straight line between its ends, no road is faster than 30 m/s and all multipliers are ≥ 1, and it is
+consistent by the triangle inequality, which makes graph search with a closed set optimal. At τ = 0.5
+the medium map splits into two halves, because the only connecting road N1↔N2 has P(Blocked) = 0.83.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -133,6 +142,12 @@ whole simulation, which is likely overconfident for late incidents.
 | HMM predicted P(High): small N4→H1, large N16→N17 | 0.548, 0.704 | pass |
 | HMM stationary distribution | (45, 49, 33)/127, exact fixed point π·T = π | pass |
 | HMM convention initial = P(X₁): one observation "Low" | (0.941, 0.0554, 0.0037); off-by-one bug gives (0.925, 0.069, 0.005) and only this test fails | pass |
+| Road distance ≥ straight line; no road faster than 30 m/s | smallest ratio: small 1.017, medium 1.132, large 1.116 | pass |
+| Heuristic consistent: cost(u,v) ≥ h(u) − h(v), every usable road and goal | holds in all 3 scenarios | pass |
+| A\* = UCS on every node pair; A\* never expands more | expanded A\*/UCS: 46/50, 144/180, 7780/8450 | pass |
+| Small: H1↔N3 blocked (0.998); N1→N2 unusable at τ 0.5, usable at τ 0.6 | as expected; N2→N1 stays usable | pass |
+| Hand-made graph: shortest in metres ≠ fastest; unreachable goal | A\* takes the faster 30 m/s detour; `None` | pass |
+| Mutation: inadmissible h (15 m/s) | consistency/straight-line tests fail in all scenarios; A\* = UCS only on large | caught |
 
 ## Critical reflection
 

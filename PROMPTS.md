@@ -183,7 +183,13 @@ test. Corrected the LLM's eigenvalue claim (0.742, not 0.7). See Prompt 9.
 belief 0.941 / 0.0554 / 0.0037, off-by-one 0.925 / 0.069 / 0.005). Added the convention test with the
 explanation comment; injected the bug → only the new test failed (1 failed, 24 passed); reverted →
 25 passed. Fixed the eigenvalue comment and the report sentence.
-**Response (phase 4):** *(see below / fill in after review)*
+**Response (phase 4):** src/cost_model.py (`EdgeCost` with base / p_blocked / status_mult /
+traffic_mult / cost, `edge_costs`) and src/search.py (`astar`, `ucs`, closed set, alphabetical ties);
+38 tests pass. Smallest distance/straight-line ratio: small 1.017, medium 1.132, large 1.116.
+Expanded A* vs UCS over all pairs: small 46/50, medium 144/180, large 7780/8450. Found that medium
+splits in two halves at tau 0.5 (N1↔N2 blocked, P = 0.83): only 72 of 144 pairs reachable.
+Mutation check: heuristic with 15 m/s (inadmissible) → consistency and straight-line tests fail in
+all scenarios, A* = UCS fails only on large.
 **What I did:** *(fill in after reviewing phase 4)*
 
 ---
