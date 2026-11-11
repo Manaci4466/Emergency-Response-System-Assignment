@@ -29,16 +29,41 @@ def plan_entries(result: SimulationResult) -> list[dict]:
     ]
 
 
+def _tau(text: str) -> float:
+    """tau must lie in (0, 1]: tau = 0 would close every road, tau > 1 is meaningless."""
+    value = float(text)
+    if not 0 < value <= 1:
+        raise argparse.ArgumentTypeError(f"tau must be in (0, 1], got {value}")
+    return value
+
+
+def _multiplier(text: str) -> float:
+    """Multipliers below 1 would make a road faster than its free-flow time, which breaks the
+    premise of the A* heuristic (cost >= distance / max_speed)."""
+    value = float(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"--unobserved-traffic must be >= 1, got {value}")
+    return value
+
+
+def _positive_int(text: str) -> int:
+    value = int(text)
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"--node-limit must be >= 1, got {value}")
+    return value
+
+
 def main(argv: list[str] | None = None) -> int:
     """Returns the exit code: 0 if the written plan is valid, 1 if the validator finds errors."""
     parser = argparse.ArgumentParser(description="Emergency response decision-support system")
     parser.add_argument("scenario", type=Path, help="scenario folder, e.g. Scenarios/small")
     parser.add_argument("--out", type=Path, default=None, help="output folder (default output/<name>)")
-    parser.add_argument("--tau", type=float, default=0.5, help="road unusable if P(Blocked) >= tau")
+    parser.add_argument("--tau", type=_tau, default=0.5,
+                        help="road unusable if P(Blocked) >= tau, in (0, 1]")
     parser.add_argument("--policy", choices=sorted(POLICIES), default="csp")
-    parser.add_argument("--unobserved-traffic", type=float, default=1.0,
-                        help="traffic multiplier for roads without observations")
-    parser.add_argument("--node-limit", type=int, default=NODE_LIMIT,
+    parser.add_argument("--unobserved-traffic", type=_multiplier, default=1.0,
+                        help="traffic multiplier for roads without observations, >= 1")
+    parser.add_argument("--node-limit", type=_positive_int, default=NODE_LIMIT,
                         help="CSP search nodes per round before the best plan so far is used")
     args = parser.parse_args(argv)
 

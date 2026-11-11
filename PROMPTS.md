@@ -6,7 +6,12 @@ The report needs Prompt 1 **exactly as sent**, typos included, so don't edit it.
 
 **Tools used**
 - Claude (claude.ai chat): concept explanations, design, build guide, report help.
-- Claude Code in JetBrains Air (Claude subscription): implementation in the repo. *(fill in if you use it)*
+- Claude Code (model Claude Opus 5.5, Claude subscription), run from the terminal next to PyCharm:
+  implementation, tests, git and the report/log updates in the repo.
+- Workflow: Claude chat acted as the **reviewer**. After every phase it re-ran the tests on my copy,
+  verified numbers independently (hand calculations, separate scripts) and mutation-tested the code;
+  its findings became my next prompt to Claude Code. Claude Code in turn verified the reviewer's numbers
+  before using them (Prompts 11, 12, 17), so mistakes were caught in both directions.
 
 ---
 
@@ -47,7 +52,11 @@ Key findings: the A* heuristic is admissible and consistent in all scenarios; tw
 P(Blocked) = 0.527; several deadlines depend on assumptions (e.g. large I4, I5).
 While drafting, it first claimed medium I2 is on time by chaining (19.8 s), then corrected this to
 20.8 s once the unreported-road multiplier was included.
-**What I did:** *(fill in: e.g. checked the N1->N2 posterior by hand)*
+**What I did:** accepted the guide as the build plan (8 phases, 10 design decisions, CLAUDE.md). I did not
+trust its numbers blindly: they became test values (CLAUDE.md "Known test values"), e.g. I recomputed the
+N1→N2 posterior (0.014 / 0.459 / 0.527) by hand in phase 2 (Prompt 7). The self-correction on medium I2
+(19.8 s → 20.8 s) showed early that every LLM number needs a test; the final value 20.78 s is tested in
+phase 5.
 
 ---
 
@@ -55,7 +64,12 @@ While drafting, it first claimed medium I2 is on time by chaining (19.8 s), then
 
 > The decisions look good for now
 
-**What I did:** accepted all 10 recommended decisions for version 1. *(Note any you change later, and why.)*
+**What I did:** accepted all 10 recommended decisions for version 1. None of the 10 was changed later;
+they were made explicit and tested instead: decision 1 (τ, inclusive ≥, boundary test), decision 2
+(unreported roads) and decision 5 (unobserved traffic) were tested as experiments in phase 8, which showed
+decision 5 is the most sensitive assumption for medium. Added during the build: the UCS fallback when a road
+is shorter than the straight line, the greedy fallback when the CSP node limit is hit (Prompt 17), and the
+"stranded responder" rule in the Monte Carlo replay (Prompt 16).
 
 ---
 
@@ -64,7 +78,8 @@ While drafting, it first claimed medium I2 is on time by chaining (19.8 s), then
 > *Yes, it is tomorrow, the date.  I also forgot to add the ReadME from the scenarios. I don't know if that changes anything. I need your help writing the report. I already have a file ready which I added just now. I want you to give me hints on what to write and also refine the few sentences I write into something more refined and concrete. I also want to use Jetbrains Air and log in to Claude using this account. I don't know how to. Help me do this before starting the first fase.*
 
 **Response:** report skeleton with section hints, this log, a CLAUDE.md for the repo, Air setup steps.
-**What I did:** Looked for a way to link Claude Code to PyCharm
+**What I did:** Looked for a way to link Claude Code to PyCharm; used the report skeleton and this log
+throughout the project.
 
 ---
 
@@ -76,7 +91,8 @@ While drafting, it first claimed medium I2 is on time by chaining (19.8 s), then
 **Response:** Phase 1 is finished: the data loader works and all 5 tests pass. The
   node, road, responder and incident counts match CLAUDE.md for small,
   medium and large.
-**What I did:** loaded a one-shot prompt with the help of Claude Chat
+**What I did:** loaded a one-shot prompt with the help of Claude Chat. Reviewed the result and found that
+its CPT-orientation test could never fail → Prompt 6.
 
 ---
 
@@ -317,7 +333,9 @@ the repo; a grader can now compare their own run with ours.)
 Critical on time, test rows), committed phase 6, generated the six runs with run.py into
 results/<scenario>-<policy>/ and documented them in README.md (install with `python -m pip`, run
 options, how to diff a fresh run against results/; a fresh run is byte-identical).
-**What I did:** *after review found errors then prompted for test to check and modify*
+**What I did:** *after review found errors then prompted for test to check and modify* — accepted the
+committed results (a fresh run is byte-identical, so graders can diff their own run); my review of the
+next phase became the validator prompt (Prompt 15).
 
 ---
 
@@ -382,7 +400,10 @@ doubles small's planned deadlines met (28.6% → 57.1%) but is slightly worse in
 three plus the unreported option, the stationary distribution, I2 ≈ 0.25, and a forced-blocked-road
 stranding test (its first version was wrong: in the certain world R1 drives N1→N2 directly; fixed;
 a no-stranding mutant is caught). 95 tests pass. Report: Tables 4–6 with "what this shows".
-**What I did:** *after review created tests and modified code.*
+**What I did:** *after review created tests and modified code.* — my review found that experiment 3
+applied small's stationary multiplier to every scenario (medium's own is 1.25), and asked for robustness
+for unseen scenarios (heuristic speed, UCS fallback), a node-limit warning and the missing statistics
+extras (Prompt 17).
 
 ---
 
@@ -418,7 +439,43 @@ a no-stranding mutant is caught). 95 tests pass. Report: Tables 4–6 with "what
 5. Regenerated results/ (plans unchanged, statistics.txt +4 lines) and results/experiments.md.
 6. CLAUDE.md run/layout updated. The README attachment did not arrive: waiting for it.
 102 tests pass.
-**What I did:** *(fill in)*
+**What I did:** *Checked it with Claude. Wrote a sweeping mutation test to check for possible errors and
+prompted again.* — the reviewer's sweep found one uncaught mutant (gaps in observation numbers) and the
+missing option validation → Prompt 18.
+
+---
+
+## Prompt 18 (Final polish) (2026-11-11, Claude Code)
+
+> Now that we are done. I need you basically refine the whole project. That is easier said than done. So I will be giving you specific pointers in a list:
+>
+> - complete my README so that it contains everything to understand the project
+> - complete my PROMPTS.md and fill in anywhere you think needs to be filled in, especially the "what I did" section.
+> - make sure in the README to indicate that small = scenarion 1, medium = scenario 2, large = scenario 3.
+>
+> Final polish:
+> 1. Add a loader test: observation numbers 1, 2, 4 for one road must raise ValueError (the only uncaught mutant in the reviewer's sweep).
+> 2. run.py: reject --unobserved-traffic < 1 (multipliers below 1 break the A* admissibility premise), --tau outside (0, 1], and --node-limit < 1, with a clear argparse error. Add a test.
+> 3. Add the attached mutation_sweep.py as tools/mutation_sweep.py and run it: it must report 27 of 27 caught. Put the result in report.md (Testing) as one sentence.
+> 4. Replace README.md with the attached version. Verify every command, option, number and file name in it against the code and a fresh run, and fix mismatches. Scenario mapping: [confirm: 1 = small, 2 = medium, 3 = large].
+> 5. Regenerate results/ (experiments.md + the six runs) and check results/<scenario>-<policy>/ exists for all six.
+> 6. Fresh-clone test: clone the repo into /tmp, create a new venv, `python -m pip install -r requirements.txt`, run `pytest` and `python run.py Scenarios/small`. Report anything that fails.
+> 7. Log this in PROMPTS.md, commit, merge into main, push.
+>
+> Also do add overacrching tests like sweeping mutation test to test everything!
+
+**Response:** the attached mutation_sweep.py and README did not arrive (second time for the README), so
+Claude Code wrote both itself. (1) observation-gap test; (2) argparse validation (exit 2, nothing written) +
+tests; (3) tools/mutation_sweep.py with 35 mutants across all modules, run on a temporary copy (no stale
+.pyc): first run 34/35, the survivor was `>=` → `>` for P(Blocked) = τ exactly, never tested → added a τ
+boundary test → **35 of 35 caught**; also an opt-in pytest wrapper (RUN_MUTATION_SWEEP=1), which first
+recursed into itself (fixed by clearing the variable for the inner runs). (4) README written from scratch
+(scenario mapping 1 = small, 2 = medium, 3 = large; install, options, outputs, design, testing, results,
+limitations, layout); every number, command and console line checked against a fresh run and results/.
+(5) results regenerated: identical, all six folders present. (6) fresh clone into /tmp + new venv:
+pip install OK, `pytest` 110 passed / 1 skipped, `run.py Scenarios/small` exit 0 with a plan identical to
+results/small-csp, mutation sweep 35/35 in the clone: nothing failed. Filled in the remaining "What I did" entries. 110 passed, 1 skipped.
+**What I did:** accepted; confirmed the scenario mapping (1 = small, 2 = medium, 3 = large).
 
 ---
 

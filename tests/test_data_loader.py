@@ -108,3 +108,16 @@ def test_unknown_values_fail_at_load_time(
     path.write_text(path.read_text().replace(old, new))
     with pytest.raises(ValueError, match=message):
         load_scenario(folder)
+
+
+def test_observation_numbers_must_be_consecutive(tmp_path: Path) -> None:
+    """1, 2, 4 has a gap: the HMM would silently treat observation 4 as the next time step."""
+    from src.data_loader import load_traffic_observations
+    f = tmp_path / "observed_traffic.csv"
+    header = "observation_nr,from,to,traffic_observation\n"
+    f.write_text(header + "1,N1,N2,Low\n2,N1,N2,Low\n4,N1,N2,High\n")
+    with pytest.raises(ValueError, match="not numbered 1..n"):
+        load_traffic_observations(f)
+    # out of order in the file is fine: they are sorted by observation_nr
+    f.write_text(header + "2,N1,N2,High\n1,N1,N2,Low\n3,N1,N2,Medium\n")
+    assert load_traffic_observations(f)[("N1", "N2")] == ["Low", "High", "Medium"]

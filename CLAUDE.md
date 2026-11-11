@@ -22,7 +22,8 @@ Units: metres, metres/second, seconds (fractional allowed). Deadlines are ABSOLU
 
 ## Layout
 run.py, src/{data_loader, bayes, hmm, cost_model, search, allocation, simulator, validator, statistics,
-experiments}.py, tests/test_<module>.py, Scenarios/{small, medium, large}/ (capital S),
+experiments}.py, tests/test_<module>.py (+ test_mutation_sweep.py, opt-in: RUN_MUTATION_SWEEP=1),
+tools/mutation_sweep.py (35 mutants, all must be caught), Scenarios/{small = scenario 1, medium = 2, large = 3}/ (capital S),
 results/<scenario>-<policy>/{plan.json, statistics.txt} + results/experiments.md (committed runs, tau 0.5),
 output/ (git-ignored default output), report.md, PROMPTS.md (prompt log), README.md.
 

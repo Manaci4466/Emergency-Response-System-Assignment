@@ -196,11 +196,20 @@ truth.
 | Monte Carlo: same seed; certain world (all Open, all Low) | identical results; equals the deterministic plan exactly, no spread | pass |
 | Monte Carlo: forced blocked road on R1's route | I2 and R1's next job I5 missed in every world (stranded); others unaffected; mutant without stranding caught | pass |
 | Monte Carlo: small I2 route blocked | 0.249 vs analytic 0.252 (tolerance 0.02) | pass |
+| Loader: observation numbers 1, 2, 4 for one road | `ValueError` (gap); out-of-order numbers are sorted | pass |
+| τ boundary: τ exactly = P(Blocked) of N1→N2 | road unusable (≥ is inclusive); usable just above | pass |
+| `run.py` rejects τ ∉ (0, 1], unobserved traffic < 1, node limit < 1 | argparse error (exit 2), nothing written | pass |
+| Heuristic robustness: 40 m/s road; road shorter than the straight line | h uses the fastest road; falls back to UCS, = Floyd–Warshall (plain A\* would give 10.8 s instead of 7.7 s) | pass |
+| Node limit hit (limit 1) | greedy fallback, no incident lost, warning printed and in statistics.txt | pass |
 
 Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
 only comparing them with each other, every returned path is re-costed from its roads and compared with an
 independent Floyd–Warshall reference written in the test. Each test was itself checked by **mutation
-testing** (injecting a known bug and confirming a test fails).
+testing** (injecting a known bug and confirming a test fails). An overarching **mutation sweep** (`tools/mutation_sweep.py`) applies
+35 typical bugs from every module (flipped CPTs, HMM off-by-one, inadmissible heuristic, no MRV,
+clairvoyance, wrong statistics denominators, a validator that skips checks, ...) one at a time to a copy
+of the project and runs the whole suite: **35 of 35 are caught**. Its first run found one gap (a road
+with P(Blocked) exactly τ was never tested), which a boundary test now closes.
 
 **Table 2 – Validator fault injection** (`validator.py`: reads only `plan.json` + raw files, never the
 planner's search/allocation code; each fault must give exactly the expected error)

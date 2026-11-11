@@ -124,3 +124,22 @@ def test_heuristic_is_mentioned_in_statistics(tmp_path: Path) -> None:
     subprocess.run([sys.executable, "run.py", str(SCENARIOS / "small"), "--out", str(out)],
                    cwd=ROOT, capture_output=True, text=True, check=True)
     assert " * Route search: A*, h = straight-line distance / 30 m/s" in (out / "statistics.txt").read_text()
+
+
+@pytest.mark.parametrize("option, value", [
+    ("--tau", "0"), ("--tau", "1.5"), ("--tau", "-0.2"),
+    ("--unobserved-traffic", "0.8"), ("--node-limit", "0"),
+])
+def test_run_py_rejects_invalid_options(option: str, value: str, tmp_path: Path) -> None:
+    proc = subprocess.run([sys.executable, "run.py", str(SCENARIOS / "small"), "--out",
+                           str(tmp_path / "x"), option, value],
+                          cwd=ROOT, capture_output=True, text=True)
+    assert proc.returncode == 2  # argparse usage error
+    assert option in proc.stderr and "must be" in proc.stderr
+    assert not (tmp_path / "x").exists()  # nothing was written
+
+
+def test_run_py_accepts_boundary_options(tmp_path: Path) -> None:
+    subprocess.run([sys.executable, "run.py", str(SCENARIOS / "small"), "--out", str(tmp_path / "x"),
+                    "--tau", "1", "--unobserved-traffic", "1", "--node-limit", "1"],
+                   cwd=ROOT, capture_output=True, text=True, check=True)
