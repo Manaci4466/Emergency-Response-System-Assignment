@@ -1,4 +1,4 @@
-"""@brief Phase 5: responder allocation as a CSP, solved per round (Notes 2, practicum 1: backtracking,
+"""@brief Phase 5: responder allocation as a CSP, solved per round (Notes 2: backtracking,
 MRV, forward checking) with branch and bound on a lexicographic objective.
 
 One round = the incidents that become known at time `now` (no clairvoyance).

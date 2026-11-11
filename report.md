@@ -29,14 +29,14 @@ needs the distribution of the *current* level, not the most likely history. The 
 filtered belief plus one prediction step, converted into an expected multiplier (Low 1.0, Medium 1.25,
 High 1.5; roads without observations ×1.0).
 
-**Cost model and A*** (`cost_model.py`, `search.py`, Notes 1, practicum 1). Expected time = distance/speed ×
+**Cost model and A*** (`cost_model.py`, `search.py`, Notes 1). Expected time = distance/speed ×
 status multiplier (P(O)·1 + P(C)·1.5)/(P(O)+P(C)) × traffic multiplier; a road is unusable if
 P(Blocked) ≥ τ = 0.5. A\* (graph search, closed set) uses h = straight-line distance / fastest road
 speed: admissible because every road is at least as long as the straight line and every multiplier
 is ≥ 1, and consistent by the triangle inequality, so the closed set never discards a better path.
 The program checks the first condition on each scenario and otherwise uses h = 0 (uniform-cost search).
 
-**CSP allocation** (`allocation.py`, Notes 2, practicum 1). Each round (the incidents with the same timestamp)
+**CSP allocation** (`allocation.py`, Notes 2). Each round (the incidents with the same timestamp)
 is a CSP: variables = incidents, domains = capable responders that can reach them. A busy responder is
 queued and starts its next job from its last incident once that job ends. Deadlines
 are soft (late help beats no help), so forward checking is adapted: an incident with no on-time
@@ -68,7 +68,7 @@ or a hand calculation before I relied on it.
 ## Testing & results
 
 `python -m pytest` runs **110 tests** (plus an opt-in, slow mutation sweep), using
-**hand-calculated values** (N1→N2 posterior 0.014 / 0.459 / 0.527; the practicum umbrella HMM exactly
+**hand-calculated values** (N1→N2 posterior 0.014 / 0.459 / 0.527; the classic umbrella HMM exactly
 with fractions, 2/5 and 15/128; the allocation of small's first round), **differential testing** (A\*,
 UCS and an independent Floyd–Warshall agree on every node pair; the CSP matches exhaustive brute force on
 the first round of every scenario) and **property tests** (consistent heuristic, no clairvoyance). The **validator** reads only `plan.json` and the

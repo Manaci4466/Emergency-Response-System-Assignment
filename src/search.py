@@ -1,4 +1,4 @@
-"""@brief Phase 4b: A* route search (Notes 1, practicum 1), graph search with a closed set.
+"""@brief Phase 4b: A* route search (Notes 1), graph search with a closed set.
 
     f(n) = g(n) + h(n)
     g(n) = expected travel time from the start to n along the path found (s)
