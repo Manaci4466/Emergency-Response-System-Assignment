@@ -315,7 +315,8 @@ the repo; a grader can now compare their own run with ours.)
 
 **Response:** added phase 6 to report.md (simulation paragraph, Table 3 with weighted lateness and
 Critical on time, test rows), committed phase 6, generated the six runs with run.py into
-results/<scenario>-<policy>/ and documented them in README.md.
+results/<scenario>-<policy>/ and documented them in README.md (install with `python -m pip`, run
+options, how to diff a fresh run against results/; a fresh run is byte-identical).
 **What I did:** *(fill in)*
 
 ---

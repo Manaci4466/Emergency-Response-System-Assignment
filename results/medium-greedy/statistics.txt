@@ -1,0 +1,24 @@
+System statistics:
+
+ * 12 incidents handled
+ * 8 responders used
+ * Average response time: 37.2 s
+ * Deadlines met: 91.7%
+
+Details (policy greedy, tau 0.5, unobserved traffic 1.0):
+ * Incidents in scenario: 12 (handled 12, unhandled 0)
+ * On time: 11 / 12
+ * Per priority (total / handled / on time):
+     Critical 6 / 6 / 5  (83.3% on time)
+     High     5 / 5 / 5  (100.0% on time)
+     Medium   1 / 1 / 1  (100.0% on time)
+ * Late incidents: I3 (+21.6 s)
+ * Unhandled incidents: none
+
+Definitions:
+ * Units: seconds (s). Times are absolute simulation times from t = 0.
+ * Incidents handled: incidents with an assigned responder.
+ * Responders used: distinct responders with at least one assignment.
+ * Average response time: mean of (arrival - incident timestamp) over handled incidents only.
+ * Deadlines met: on-time arrivals (arrival <= deadline) / ALL incidents; unhandled incidents count as missed.
+ * All times are EXPECTED times under the model (Bayesian road status + HMM traffic), not observed ground truth.
