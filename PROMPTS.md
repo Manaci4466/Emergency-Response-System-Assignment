@@ -276,6 +276,50 @@ CSP only one per branch, so the CSP always has fewer nodes, with or without prun
 
 ---
 
+## Prompt 13 (Phase 5 merge + Phase 6 simulator, statistics, run.py) (2026-11-11, Claude Code)
+
+> Merge phase-5-allocation into main and push. Then:
+>
+> Phase 6: simulator + statistics + run.py, new branch.
+> - simulator.py: simulate(scenario, tau=0.5, unobserved_traffic=1.0, policy="csp"|"greedy") -> result with all assignments, unhandled ids, per-round stats. Costs computed once (t = 0 beliefs, decision 3). Rounds = distinct incident timestamps in ascending order; each round only sees incidents with timestamp == t and the current responder states (no clairvoyance).
+> - statistics.py: from the assignments + scenario: incidents handled; responders used (distinct); average response time = mean(arrival − incident timestamp) over handled incidents; deadlines met % = on-time arrivals / ALL incidents (unhandled count as missed); plus a per-priority breakdown and the lists of late and unhandled incidents. statistics.txt starts with the four required lines in the assignment's example format, then the extras, then a short "Definitions" block: units (seconds), the formulas above, and that times are EXPECTED times under the model, not observed ground truth.
+> - run.py: `python run.py Scenarios/<name> [--out DIR] [--tau 0.5] [--policy csp|greedy] [--unobserved-traffic 1.0]`; default out = output/<name>. Writes plan.json with EXACTLY the four keys from the assignment (responder_id, incident_id, path, time), sorted by time then responder id, and statistics.txt. Prints a one-line summary.
+> Tests:
+> - no clairvoyance: change a future incident (small I7, t=60) and check that all assignments from rounds before t=60 are identical
+> - statistics on a hand-made result: 2 handled (one late) + 1 unhandled -> deadlines met = 1/3 = 33.3%, average over the 2 handled only
+> - run.py end-to-end on all 3 scenarios (subprocess, tmp out dir): both files exist, plan.json is a list of objects with exactly those 4 keys and the right types
+> Finally print a table: per scenario, CSP vs greedy: handled, responders used, avg response time, deadlines met %.
+
+**Response:** merged and pushed phase 5. Read the statistics example format from the assignment PDF
+(section 5.2). src/simulator.py, src/statistics.py, run.py and tests/test_simulation.py; 60 tests
+pass. The no-clairvoyance test also checks that I7's own assignment changes (otherwise it proves
+nothing); mutation check: rounds processed latest-first → caught. Results: CSP and greedy tie on the
+required deadline % (small 28.6%, medium 91.7%, large 65.0%), but the CSP keeps a Critical incident on
+time where greedy does not (weighted lateness small 24 vs 28, medium 4 vs 8).
+**What I did:** accepted after verifying independently: a separate script reading only plan.json and
+the raw scenario files recomputed every path cost, start/end node, start time, capability and job
+order per responder: 0 errors in all 6 runs, every number matched (including weighted lateness and
+Critical on time). Mutation: made the simulator clairvoyant (all incidents known at t = 0) → 7 tests
+fail.
+
+---
+
+## Prompt 14 (Phase 6: committed results) (2026-11-11, Claude Code)
+
+> Also: after the phase 6 commit, copy the six final runs (3 scenarios × csp/greedy, tau 0.5) to a committed results/<scenario>-<policy>/ folder and mention it in README.
+>
+> Do this before phase 7. I know it says I should paste it above phase 7 prompt, but I find it safe to do the fix for phase 6 first before moving on to the validator.
+
+(Suggested by my reviewing LLM: output/ is git-ignored, so the results the report cites were not in
+the repo; a grader can now compare their own run with ours.)
+
+**Response:** added phase 6 to report.md (simulation paragraph, Table 3 with weighted lateness and
+Critical on time, test rows), committed phase 6, generated the six runs with run.py into
+results/<scenario>-<policy>/ and documented them in README.md.
+**What I did:** *(fill in)*
+
+---
+
 <!-- Template for new entries:
 
 ## Prompt N: <topic> (<date time>, <tool>)

@@ -99,6 +99,15 @@ and bound. On small t = 0 the CSP misses weight 12 against 16 for the greedy bas
 take R2, the only responder that can reach the Critical I4 on time. Limitation: the job order of one
 responder follows the search order, so the CSP is not exhaustive over all job orders.
 
+**Online simulation and statistics (`simulator.py`, `statistics.py`, `run.py`).** Edge costs are
+computed once from the t = 0 beliefs (no new evidence arrives during the simulation). Incidents are
+processed in rounds by timestamp; each round sees only the incidents with that timestamp and the
+current responder states, and its assignments are committed immediately (no clairvoyance, no
+re-planning). Deadlines met is divided by *all* incidents (unhandled = missed), while the average
+response time (arrival − incident timestamp) is taken over handled incidents only: two different
+denominators, on purpose. All reported times are expected times under the model, not observed ground
+truth.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -174,11 +183,36 @@ responder follows the search order, so the CSP is not exhaustive over all job or
 | Assignment trap (first solution not optimal) | CSP 4 s, greedy 11 s | pass |
 | Pruning on vs off | same answer; nodes 7 vs 11 (small), 28 vs 202 (large) | pass |
 | Mutations: no MRV / busy ignored / handling time ignored / over-strong bound / no pruning | all caught (the last two only after the targeted tests) | caught |
+| No clairvoyance: change future incident I7 (small, t = 60) | all assignments of earlier rounds identical; I7's own assignment changes | pass |
+| Every incident assigned once or unhandled; nothing starts before its timestamp (all scenarios, both policies) | holds | pass |
+| Statistics on a hand-made result: 2 handled (1 late) + 1 unhandled | deadlines met 1/3 = 33.3%; average over the 2 handled only | pass |
+| `run.py` end to end, all scenarios | plan.json has exactly the 4 keys with the right types, sorted by time | pass |
+| Mutations: rounds processed latest-first / all incidents known at t = 0 | no-clairvoyance test fails / 7 tests fail | caught |
 
 Correctness is checked by **differential testing**: A\* and UCS share one search function, so instead of
 only comparing them with each other, every returned path is re-costed from its roads and compared with an
 independent Floyd–Warshall reference written in the test. Each test was itself checked by **mutation
 testing** (injecting a known bug and confirming a test fails).
+
+**Table 3 – Scenario results** (τ = 0.5; expected times in seconds; runs committed in `results/`)
+
+| Scenario | Policy | Handled | Responders used | Avg response (s) | Deadlines met | Weighted lateness | Critical on time |
+|---|---|---|---|---|---|---|---|
+| small | CSP | 7/7 | 4 | 112.8 | 28.6% | **24** | **1/2** |
+| small | greedy | 7/7 | 4 | 112.2 | 28.6% | 28 | 0/2 |
+| medium | CSP | 12/12 | 8 | 34.6 | 91.7% | **4** | **6/6** |
+| medium | greedy | 12/12 | 8 | 37.2 | 91.7% | 8 | 5/6 |
+| large | CSP | 20/20 | 8 | 1319.2 | 65.0% | 36 | 5/8 |
+| large | greedy | 20/20 | 8 | 1319.2 | 65.0% | 36 | 5/8 |
+
+The required, unweighted deadline percentage hides the CSP's advantage: in small and medium both
+policies reach the same percentage, but the CSP keeps a Critical incident on time where greedy lets it
+slip (weighted lateness = Σ priority weights of late incidents, the CSP's objective). In large most
+rounds hold one incident and both policies produce the same plan. Small misses several deadlines by
+only 1–5 s (I1 +1.1 s, I2 +2.2 s), so these outcomes depend on the model's assumptions; the one real
+outlier is I7 (+39.4 s): only R3 can do traffic control and it is still busy at N3 with I3. All plans
+were re-checked by an independent script reading only `plan.json` and the raw scenario files
+(0 errors).
 
 ## Critical reflection
 
