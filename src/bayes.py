@@ -5,8 +5,8 @@ Network per directed road:   Weather -> Status -> {Citizen, Police, Sensor}
   evidence : the reports, and the weather if it was reported
   hidden   : the weather when it is NOT reported (summed out with the prior)
 
-Because every report depends only on S, the reports are conditionally independent given S,
-so their likelihoods can simply be multiplied:
+S is each report's ONLY parent and there are no edges between the reports, so the reports are
+conditionally independent given S and their likelihoods can simply be multiplied:
     P(S | w, r1..rn)  ∝  P(S | w) · Π_i P(r_i | S)
 P(w) is the same constant for every value of S, so normalisation removes it.
 """

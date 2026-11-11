@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from src.bayes import road_status_beliefs, status_posterior
+from src.bayes import road_status_beliefs, status_posterior, status_prior
 from src.data_loader import RoadReport, load_scenario
 
 SCENARIOS = Path(__file__).resolve().parent.parent / "Scenarios"
@@ -54,9 +54,12 @@ def test_one_source_missing(small) -> None:
 def test_every_road_gets_a_distribution(name: str) -> None:
     s = load_scenario(SCENARIOS / name)
     beliefs = road_status_beliefs(s)
+    # Expected prior from THIS scenario's own tables (not small's numbers: the scenarios
+    # happen to share tables, but the test must not depend on that).
+    prior = status_prior(s.road_model, None)
     assert set(beliefs) == set(s.roads)  # EVERY road, reported or not
     for edge, post in beliefs.items():
         assert set(post) == {"Open", "Congested", "Blocked"}
         assert sum(post.values()) == pytest.approx(1.0), edge
         if edge not in s.reports:  # unreported -> prior marginal
-            assert post == pytest.approx({"Open": 0.685, "Congested": 0.18, "Blocked": 0.135})
+            assert post == pytest.approx(prior)

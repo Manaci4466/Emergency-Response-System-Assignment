@@ -276,4 +276,19 @@ def load_scenario(folder: str | Path) -> Scenario:
     for edge in list(scenario.reports) + list(scenario.traffic_obs):
         if edge not in roads:
             raise ValueError(f"data refers to non-existent road {edge}")
+    # Fail fast on typos ("Blockd"): every value must exist in the matching probability table,
+    # otherwise it would only crash later as a KeyError deep inside bayes.py / hmm.py.
+    weathers = set(scenario.road_model.weather_prior)
+    statuses = set(next(iter(scenario.road_model.status_given_weather.values())))
+    traffic_levels = set(scenario.traffic_model.initial)
+    for edge, road_reports in scenario.reports.items():
+        for rep in road_reports:
+            if rep.weather not in weathers:
+                raise ValueError(f"report on {edge}: unknown weather {rep.weather!r}")
+            if rep.reported_status not in statuses:
+                raise ValueError(f"report on {edge}: unknown status {rep.reported_status!r}")
+    for edge, seq in scenario.traffic_obs.items():
+        for obs in seq:
+            if obs not in traffic_levels:
+                raise ValueError(f"traffic observation on {edge}: unknown level {obs!r}")
     return scenario

@@ -119,7 +119,7 @@ own initiative (transition Low→Medium 0.18, flipped 0.15; emission Low→Mediu
 tests/test_bayes.py; 13 tests pass. Unnormalised products for N1→N2: 0.00012 / 0.00384 / 0.00441.
 Roads with P(Blocked) ≥ 0.5: small H1↔N3 (0.998), N1→N2 and N2→N4 (0.527); medium N1↔N2 (0.83);
 large N16↔N5 (0.527). Also tested that every unreported road in all three scenarios equals the prior.
-**What I did:** accepted. *(fill in your own check, e.g. recomputed the N1→N2 products by hand)*
+**What I did:** Accepted. Recomputed the N1→N2 products by hand. Mutation-tested with a second LLM: flipping the CPT index gives 0.614 and removing the dict() copy corrupts the CPT. The tests catch both.*
 
 ---
 
