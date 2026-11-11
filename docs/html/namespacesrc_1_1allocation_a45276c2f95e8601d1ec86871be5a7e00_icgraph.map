@@ -1,0 +1,7 @@
+<map id="src.allocation._apply" name="src.allocation._apply">
+<area shape="rect" id="Node000001" title="New states after an assignment: the responder waits at the incident until finish (decision 8)." alt="" coords="219,31,375,56"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1allocation.html#adb8bed10a3b248d65ced0236b040ac29" title="Solve ONE round with backtracking + MRV + forward checking + branch and bound." alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,35,171,31,171,25,206,30"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1allocation.html#a1ce1013a3599c026b48dc871604ceeac" title="Baseline: incidents in id order, each gets the capable responder that arrives earliest." alt="" coords="9,55,167,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,56,168,61,167,56,205,51"/>
+</map>

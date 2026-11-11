@@ -1,7 +1,7 @@
 # Emergency Response Decision-Support System
 
 Artificial Intelligence Practicum, UAntwerpen. Report: [`report.md`](report.md) · LLM prompt log:
-[`PROMPTS.md`](PROMPTS.md)
+[`PROMPTS.md`](https://github.com/Manaci4466/Emergency-Response-System-Assignment/blob/main/PROMPTS.md)
 
 The system plans which emergency responder goes to which incident, and along which route, in a city
 whose road conditions are uncertain. It combines the course techniques in one pipeline:
@@ -29,7 +29,7 @@ The three provided datasets live in `Scenarios/`. The folder names map to the as
 
 Each folder contains `city_graph.json`, `incidents.csv`, `responders.csv`, `road_reports.csv`,
 `observed_traffic.csv`, `road_probabilities.json` and `traffic_probabilities.json`
-(see [`Scenarios/README.md`](Scenarios/README.md)). Any folder with the same files can be used.
+(see [`Scenarios/README.md`](https://github.com/Manaci4466/Emergency-Response-System-Assignment/blob/main/Scenarios/README.md)). Any folder with the same files can be used.
 
 ## 2. Installation
 

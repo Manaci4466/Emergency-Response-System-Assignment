@@ -1,0 +1,7 @@
+<map id="src.bayes.normalise" name="src.bayes.normalise">
+<area shape="rect" id="Node000001" title="Divide by the total so the values sum to 1 (the &#39;∝&#39; step)." alt="" coords="459,13,612,38"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1bayes.html#ad0b613690c596e6283784fca6b587bd0" title="Posterior P(S | weather, reports) ∝ P(S | weather) · Π P(report | S), normalised." alt="" coords="217,13,411,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="445,28,411,28,411,23,445,23"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1bayes.html#a598746f11f5614bbafeb3751f1df28dd" title="Posterior status for EVERY directed road of the scenario." alt="" coords="5,5,169,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="204,28,170,28,170,23,204,23"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="src.allocation.allocate" name="src.allocation.allocate">
+<area shape="rect" id="Node000001" title="Solve ONE round with backtracking + MRV + forward checking + branch and bound." alt="" coords="5,5,171,31"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1allocation.html#a45276c2f95e8601d1ec86871be5a7e00" title="New states after an assignment: the responder waits at the incident until finish (decision 8)." alt="" coords="219,5,375,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,15,205,15,205,21,171,21"/>
+</map>

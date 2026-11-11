@@ -1,0 +1,10 @@
+<map id="src.hmm.predict" name="src.hmm.predict">
+<area shape="rect" id="Node000001" title="Time elapse only: B&#39;(y) = Σ_x B(x) · P(y | x), repeated steps times." alt="" coords="423,56,551,81"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1hmm.html#a9abd393219063649e61aa9509c41f9d4" title="Forward algorithm (filtering) over one observation sequence." alt="" coords="233,5,367,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="425,55,347,33,348,28,427,50"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1hmm.html#a1066b80bdc1c76dd7714c99edcf4d665" title="Traffic &quot;now&quot; (t = 0) for every road with observations (design decision 3)." alt="" coords="5,31,177,56"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="408,66,177,51,178,46,409,61"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1hmm.html#a3cdf9e8a191cf76242ff45942200f3d9" title="Stationary distribution π with π = π · T." alt="" coords="225,106,375,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="432,88,366,109,365,103,431,83"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="220,30,178,36,177,30,219,25"/>
+</map>

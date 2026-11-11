@@ -1,0 +1,5 @@
+<map id="src.data_loader.load_traffic_observations" name="src.data_loader.load_traffic_observations">
+<area shape="rect" id="Node000001" title="Load observed_traffic.csv: one observation sequence PER DIRECTED ROAD." alt="" coords="207,5,365,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a453954d51f9632a8a87faeccff2c60c0" title="Load and validate a complete scenario folder." alt="" coords="5,5,159,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,28,159,28,159,23,193,23"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="run.main" name="run.main">
+<area shape="rect" id="Node000001" title="Run one scenario: load, simulate, write the outputs, validate." alt="" coords="5,29,85,55"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="20,31,15,21,18,11,28,5,45,3,66,6,75,15,71,19,63,11,45,8,30,10,22,15,20,20,25,28"/>
+<area shape="rect" id="Node000002" href="$namespacerun.html#a750e6075dac0deb5de3bc972d5a7a487" title="The plan.json entries: EXACTLY the four keys from the assignment." alt="" coords="133,29,260,55"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="85,39,120,39,120,45,85,45"/>
+</map>

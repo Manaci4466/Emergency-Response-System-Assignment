@@ -1,0 +1,5 @@
+<map id="src.search.ucs" name="src.search.ucs">
+<area shape="rect" id="Node000001" title="Uniform&#45;cost search = A* with h = 0 (the reference to check A* against)." alt="" coords="179,5,293,31"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#aea511f208c8dba8a4ec260344b83c06a" title="Fastest route with A* (falls back to UCS if the heuristic premise fails on the data)." alt="" coords="5,5,131,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,21,131,21,131,15,165,15"/>
+</map>

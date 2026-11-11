@@ -1,0 +1,5 @@
+<map id="src.validator.plan_statistics" name="src.validator.plan_statistics">
+<area shape="rect" id="Node000001" title="The four required statistics recomputed from plan.json alone." alt="" coords="5,5,140,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1validator.html#a8a6f8283762b701a127cacba6fc5834d" title="Expected travel time = Σ edge costs along the path." alt="" coords="188,13,369,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,23,174,23,174,28,140,28"/>
+</map>

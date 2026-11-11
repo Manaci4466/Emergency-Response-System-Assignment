@@ -1,0 +1,5 @@
+<map id="src.data_loader.load_traffic_observations" name="src.data_loader.load_traffic_observations">
+<area shape="rect" id="Node000001" title="Load observed_traffic.csv: one observation sequence PER DIRECTED ROAD." alt="" coords="5,5,164,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a4f1b189b08cebd1e33e0d8c9654b9ad9" title="Read a CSV file into a list of dicts, skipping blank lines." alt="" coords="212,13,403,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,23,198,23,198,28,164,28"/>
+</map>

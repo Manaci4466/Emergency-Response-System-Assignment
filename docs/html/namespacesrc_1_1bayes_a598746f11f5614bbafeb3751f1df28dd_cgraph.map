@@ -1,0 +1,9 @@
+<map id="src.bayes.road_status_beliefs" name="src.bayes.road_status_beliefs">
+<area shape="rect" id="Node000001" title="Posterior status for EVERY directed road of the scenario." alt="" coords="5,23,169,63"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1bayes.html#ad0b613690c596e6283784fca6b587bd0" title="Posterior P(S | weather, reports) ∝ P(S | weather) · Π P(report | S), normalised." alt="" coords="217,31,411,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,41,204,41,204,46,170,46"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1bayes.html#a6a3a98265df1d7120309327da561bf60" title="Divide by the total so the values sum to 1 (the &#39;∝&#39; step)." alt="" coords="465,5,618,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,30,451,25,451,31,412,35"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1bayes.html#a7da64cc13512d2059ed600ff9d082f34" title="Prior over the road status, before the reports are used." alt="" coords="459,55,624,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="412,51,445,55,445,60,411,56"/>
+</map>

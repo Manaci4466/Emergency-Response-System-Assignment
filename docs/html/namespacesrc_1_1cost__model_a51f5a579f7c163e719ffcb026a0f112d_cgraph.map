@@ -1,0 +1,5 @@
+<map id="src.cost_model.edge_costs" name="src.cost_model.edge_costs">
+<area shape="rect" id="Node000001" title="Expected cost of every directed road (combines phase 2 and phase 3)." alt="" coords="5,5,161,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1cost__model.html#a8def3c361099f0f463b2313af9311280" title="Expected status multiplier, conditioned on the road NOT being blocked." alt="" coords="209,5,373,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,23,195,23,195,28,162,28"/>
+</map>

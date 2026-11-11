@@ -1,0 +1,5 @@
+<map id="src.search.straight_line_violations" name="src.search.straight_line_violations">
+<area shape="rect" id="Node000001" title="Roads that are SHORTER than the straight line between their ends." alt="" coords="5,5,148,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#a0bce4d4b1a2d0bdf0fa48455551d30ba" title="Euclidean distance between two nodes, in metres." alt="" coords="196,13,376,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,23,182,23,182,28,149,28"/>
+</map>

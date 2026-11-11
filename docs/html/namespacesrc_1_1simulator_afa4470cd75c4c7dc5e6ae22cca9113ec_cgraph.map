@@ -1,0 +1,5 @@
+<map id="src.simulator.simulate" name="src.simulator.simulate">
+<area shape="rect" id="Node000001" title="Run the whole scenario round by round." alt="" coords="5,13,172,38"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1simulator.html#ac80f2d3a030e56be28aaaa3168f17d08" title="Group incidents by timestamp, in ascending time order (ids in natural order)." alt="" coords="220,5,375,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,206,23,206,28,172,28"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="src.validator.validate" name="src.validator.validate">
+<area shape="rect" id="Node000001" title="Validate a plan against the hard constraints." alt="" coords="5,55,164,80"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1validator.html#a91317de5d1be308e288b59ca68423122" title="time + travel, or None if the travel time is unknown." alt="" coords="228,5,383,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,52,234,31,235,36,143,57"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1validator.html#a8122d8aebbffea03fab6b30896c65882" title="Whether a plan entry has exactly the four keys with the right types." alt="" coords="212,55,399,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,65,198,65,198,70,164,70"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1validator.html#a8a6f8283762b701a127cacba6fc5834d" title="Expected travel time = Σ edge costs along the path." alt="" coords="215,104,396,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,77,235,98,234,104,142,83"/>
+</map>

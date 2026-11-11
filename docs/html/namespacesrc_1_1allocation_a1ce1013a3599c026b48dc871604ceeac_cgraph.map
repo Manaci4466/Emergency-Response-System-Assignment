@@ -1,0 +1,5 @@
+<map id="src.allocation.greedy" name="src.allocation.greedy">
+<area shape="rect" id="Node000001" title="Baseline: incidents in id order, each gets the capable responder that arrives earliest." alt="" coords="5,5,164,31"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1allocation.html#a45276c2f95e8601d1ec86871be5a7e00" title="New states after an assignment: the responder waits at the incident until finish (decision 8)." alt="" coords="212,5,368,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,15,198,15,198,21,164,21"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="src.allocation._Planner.route" name="src.allocation._Planner.route">
+<area shape="rect" id="Node000001" title="Cached A* route from a to b." alt="" coords="281,31,488,56"/>
+<area shape="rect" id="Node000002" href="$classsrc_1_1allocation_1_1__Planner.html#a65c6b6df465d3a206e756c95420a9fba" title="Unary constraints: capability and reachability from the responder&#39;s current location." alt="" coords="5,5,233,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="267,35,233,32,234,26,268,29"/>
+<area shape="rect" id="Node000003" href="$classsrc_1_1allocation_1_1__Planner.html#aa7fab365eac1e4c5118583231e343e60" title="The assignment that results from sending responder rid (in state st) to an incident." alt="" coords="13,55,226,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,57,226,60,226,55,267,51"/>
+</map>

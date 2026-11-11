@@ -1,0 +1,5 @@
+<map id="src.data_loader._check_cpt" name="src.data_loader._check_cpt">
+<area shape="rect" id="Node000001" title="Check that every row of a conditional probability table sums to 1." alt="" coords="5,13,203,38"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a59d66425bc50cbd03f5a2e07c554707c" title="Check that a probability distribution sums to 1." alt="" coords="251,5,421,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,23,237,23,237,28,203,28"/>
+</map>

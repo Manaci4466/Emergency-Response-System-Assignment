@@ -1,0 +1,5 @@
+<map id="src.allocation._Planner.domains" name="src.allocation._Planner.domains">
+<area shape="rect" id="Node000001" title="Unary constraints: capability and reachability from the responder&#39;s current location." alt="" coords="5,5,233,31"/>
+<area shape="rect" id="Node000002" href="$classsrc_1_1allocation_1_1__Planner.html#a4ff962079e746e4aaaa3db61777c813b" title="Cached A* route from a to b." alt="" coords="281,5,488,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,15,268,15,268,21,234,21"/>
+</map>

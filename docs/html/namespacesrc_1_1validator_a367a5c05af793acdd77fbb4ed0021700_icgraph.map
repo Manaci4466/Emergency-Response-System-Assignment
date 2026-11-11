@@ -1,0 +1,5 @@
+<map id="src.validator.plan_statistics" name="src.validator.plan_statistics">
+<area shape="rect" id="Node000001" title="The four required statistics recomputed from plan.json alone." alt="" coords="197,5,332,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1validator.html#aad1fa139c3cd51d9120f0e334a626efa" title="Compare the four lines of statistics.txt with values recomputed from plan.json." alt="" coords="5,5,149,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,28,149,28,149,23,184,23"/>
+</map>

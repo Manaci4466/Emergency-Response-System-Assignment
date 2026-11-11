@@ -1,0 +1,5 @@
+<map id="src.data_loader.load_responders" name="src.data_loader.load_responders">
+<area shape="rect" id="Node000001" title="Load responders.csv; capabilities are split on &#39;;&#39;." alt="" coords="5,5,159,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a4f1b189b08cebd1e33e0d8c9654b9ad9" title="Read a CSV file into a list of dicts, skipping blank lines." alt="" coords="207,13,397,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,23,193,23,193,28,159,28"/>
+</map>

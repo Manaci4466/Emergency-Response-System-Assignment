@@ -1,10 +1,10 @@
 """@brief Entry point of the system.
 
-Usage: python run.py Scenarios/<name> [--out DIR] [--tau 0.5] [--policy csp|greedy]
+Usage: python run.py Scenarios/NAME [--out DIR] [--tau 0.5] [--policy csp|greedy]
 [--unobserved-traffic 1.0] [--node-limit 100000]
 
 Writes DIR/plan.json (list of {responder_id, incident_id, path, time}) and DIR/statistics.txt,
-then validates the written plan with the independent validator. Default DIR = output/<name>.
+then validates the written plan with the independent validator. Default DIR = output/NAME.
 Times are in seconds. Exit code 0 = valid plan, 1 = validator errors, 2 = invalid options.
 """
 from __future__ import annotations

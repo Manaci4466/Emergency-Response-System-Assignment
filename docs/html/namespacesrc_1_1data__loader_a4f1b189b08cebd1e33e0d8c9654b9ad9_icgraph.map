@@ -1,0 +1,16 @@
+<map id="src.data_loader._read_csv" name="src.data_loader._read_csv">
+<area shape="rect" id="Node000001" title="Read a CSV file into a list of dicts, skipping blank lines." alt="" coords="413,109,604,134"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#af238554b3bffe3a5d534c0909d83b47c" title="Load incidents.csv." alt="" coords="209,5,363,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="466,105,364,60,336,48,338,43,366,55,469,100"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1data__loader.html#a256091ce1aaa7227bc4fd0c3409225cd" title="Load road_reports.csv, grouped per DIRECTED road." alt="" coords="209,69,363,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="406,109,363,103,363,98,407,104"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1data__loader.html#ae4bad046f5336b7548757aa576204ff0" title="Load responders.csv; capabilities are split on &#39;;&#39;." alt="" coords="209,133,363,173"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="407,139,363,145,363,140,406,133"/>
+<area shape="rect" id="Node000006" href="$namespacesrc_1_1data__loader.html#a708a9c3c0b67cd7094cebcfb242b7cf1" title="Load observed_traffic.csv: one observation sequence PER DIRECTED ROAD." alt="" coords="207,197,365,237"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="469,142,366,188,338,200,336,195,364,183,466,137"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1data__loader.html#a453954d51f9632a8a87faeccff2c60c0" title="Load and validate a complete scenario folder." alt="" coords="5,101,159,141"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="223,53,208,60,121,104,119,99,206,55,220,48"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="196,106,159,112,159,107,195,101"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="195,142,159,136,159,131,196,137"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="220,194,206,188,119,144,121,139,208,183,223,190"/>
+</map>

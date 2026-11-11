@@ -1,0 +1,5 @@
+<map id="src.data_loader.load_graph" name="src.data_loader.load_graph">
+<area shape="rect" id="Node000001" title="Load city_graph.json." alt="" coords="5,5,159,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a21a2aa013894c1d10419dbb0c59d70cf" title="Read a JSON file." alt="" coords="207,13,401,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,23,193,23,193,28,159,28"/>
+</map>

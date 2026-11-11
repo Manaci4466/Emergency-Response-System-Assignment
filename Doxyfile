@@ -6,8 +6,9 @@ PROJECT_NAME           = "Emergency Response Decision-Support System"
 PROJECT_BRIEF          = "AI practicum, UAntwerpen: Bayes net + HMM + A* + CSP"
 OUTPUT_DIRECTORY       = docs
 
-# Python sources, the entry point, the mutation sweep, and the README as the main page.
-INPUT                  = README.md src run.py tools
+# Python sources, the entry point, the mutation sweep, the README as the main page and the report.
+# PROMPTS.md is not an input: it quotes prompts verbatim, which Doxygen would misread as markup.
+INPUT                  = README.md src run.py tools report.md
 FILE_PATTERNS          = *.py *.md
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       = */__pycache__/*

@@ -1,0 +1,16 @@
+<map id="src.experiments.run_all" name="src.experiments.run_all">
+<area shape="rect" id="Node000001" title="Run all experiments." alt="" coords="5,108,180,133"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#a76ba2e3ef92c6502a9645067e57518d0" title="Metrics of a simulation result (reuses statistics.compute_statistics)." alt="" coords="494,108,674,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,118,481,118,481,123,180,123"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (Notes 6, sampling)." alt="" coords="245,43,418,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,105,234,84,235,89,147,111"/>
+<area shape="rect" id="Node000006" href="$namespacesrc_1_1experiments.html#ab35f9adcd0881282c67fc08c42c0e7f2" title="Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier." alt="" coords="228,158,435,198"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="147,131,235,152,234,157,146,136"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1experiments.html#af6eb1cd072252d567a90ef462881c26b" title="Nearest&#45;rank percentile of a sorted list." alt="" coords="483,55,685,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="418,62,469,63,469,68,418,67"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1experiments.html#a4ae1edacaf1c49968f8a5a4e2e397b5e" title="Draw one value from a discrete distribution (inverse CDF, keys in a fixed order)." alt="" coords="491,5,677,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="418,45,499,31,500,36,418,50"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="420,155,513,134,515,139,421,161"/>
+<area shape="rect" id="Node000007" href="$namespacesrc_1_1experiments.html#a65056a4bb6dbf140d9a0267c9e5dc2a4" title="Expected traffic multiplier under THIS scenario&#39;s stationary distribution." alt="" coords="485,158,683,198"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="435,175,471,175,471,181,435,181"/>
+</map>

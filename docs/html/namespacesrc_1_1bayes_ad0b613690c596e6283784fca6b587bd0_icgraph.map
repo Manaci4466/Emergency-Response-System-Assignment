@@ -1,0 +1,5 @@
+<map id="src.bayes.status_posterior" name="src.bayes.status_posterior">
+<area shape="rect" id="Node000001" title="Posterior P(S | weather, reports) ∝ P(S | weather) · Π P(report | S), normalised." alt="" coords="217,13,411,38"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1bayes.html#a598746f11f5614bbafeb3751f1df28dd" title="Posterior status for EVERY directed road of the scenario." alt="" coords="5,5,169,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,28,170,28,170,23,204,23"/>
+</map>

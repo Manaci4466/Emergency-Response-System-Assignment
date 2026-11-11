@@ -1,0 +1,7 @@
+<map id="src.search.straight_line_violations" name="src.search.straight_line_violations">
+<area shape="rect" id="Node000001" title="Roads that are SHORTER than the straight line between their ends." alt="" coords="201,37,344,77"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#ad63e5b43ed56373efe44b5985635cab2" title="One&#45;line description of the route search used (written to statistics.txt)." alt="" coords="5,5,153,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,46,153,40,154,35,188,41"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1search.html#a46139210f51bbd6174b1816b77d388eb" title="Whether the data satisfies the premise of the straight&#45;line heuristic." alt="" coords="5,69,153,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,74,154,80,153,74,187,69"/>
+</map>

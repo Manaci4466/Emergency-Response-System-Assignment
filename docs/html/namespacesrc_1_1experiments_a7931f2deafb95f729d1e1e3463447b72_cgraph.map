@@ -1,0 +1,19 @@
+<map id="src.experiments.main" name="src.experiments.main">
+<area shape="rect" id="Node000001" title="Entry point of python &#45;m src.experiments: write results/experiments.md and print it." alt="" coords="5,108,169,133"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="52,110,44,100,48,90,63,84,87,81,117,85,129,94,126,98,115,90,87,87,64,89,52,94,50,99,56,106"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#a8c278366eba68101ec9598fea0adba39" title="Run all experiments." alt="" coords="217,108,392,133"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="170,118,203,118,203,123,170,123"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#a76ba2e3ef92c6502a9645067e57518d0" title="Metrics of a simulation result (reuses statistics.compute_statistics)." alt="" coords="706,108,886,133"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="392,118,693,118,693,123,392,123"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (Notes 6, sampling)." alt="" coords="457,43,630,83"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="358,105,446,84,447,89,359,111"/>
+<area shape="rect" id="Node000007" href="$namespacesrc_1_1experiments.html#ab35f9adcd0881282c67fc08c42c0e7f2" title="Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier." alt="" coords="440,158,647,198"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="359,131,447,152,446,157,358,136"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1experiments.html#af6eb1cd072252d567a90ef462881c26b" title="Nearest&#45;rank percentile of a sorted list." alt="" coords="695,55,897,80"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="630,62,681,63,681,68,630,67"/>
+<area shape="rect" id="Node000006" href="$namespacesrc_1_1experiments.html#a4ae1edacaf1c49968f8a5a4e2e397b5e" title="Draw one value from a discrete distribution (inverse CDF, keys in a fixed order)." alt="" coords="703,5,889,31"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="630,45,711,31,712,36,630,50"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="632,155,725,134,727,139,633,161"/>
+<area shape="rect" id="Node000008" href="$namespacesrc_1_1experiments.html#a65056a4bb6dbf140d9a0267c9e5dc2a4" title="Expected traffic multiplier under THIS scenario&#39;s stationary distribution." alt="" coords="697,158,895,198"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="647,175,683,175,683,181,647,181"/>
+</map>

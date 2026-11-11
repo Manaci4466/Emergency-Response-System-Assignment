@@ -1,0 +1,7 @@
+<map id="src.hmm.forward" name="src.hmm.forward">
+<area shape="rect" id="Node000001" title="Forward algorithm (filtering) over one observation sequence." alt="" coords="5,31,139,56"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1hmm.html#a1effd0913ed0d9771a06c0496ddcdc69" title="Observation step: weight the belief by P(e | x) and normalise." alt="" coords="187,5,321,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,31,172,27,173,32,139,37"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1hmm.html#a89cecdfc9e0f364485dbbe8bf1711e8f" title="Time elapse only: B&#39;(y) = Σ_x B(x) · P(y | x), repeated steps times." alt="" coords="190,55,318,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,49,177,55,176,60,139,55"/>
+</map>

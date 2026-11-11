@@ -1,0 +1,13 @@
+<map id="src.search._straight_line" name="src.search._straight_line">
+<area shape="rect" id="Node000001" title="Euclidean distance between two nodes, in metres." alt="" coords="392,63,572,88"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#aea511f208c8dba8a4ec260344b83c06a" title="Fastest route with A* (falls back to UCS if the heuristic premise fails on the data)." alt="" coords="210,5,335,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="421,62,319,33,320,28,423,56"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1search.html#a6fd3e95a2388cfe16ee2b876e44e5b32" title="Straight&#45;line distance / max_speed: a lower bound on the travel time from a to b." alt="" coords="201,55,344,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="378,78,344,78,344,73,378,73"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1search.html#a060110c8a710007125f6e7c5ae6abcce" title="Roads that are SHORTER than the straight line between their ends." alt="" coords="201,119,344,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="427,95,340,122,338,117,426,90"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1search.html#ad63e5b43ed56373efe44b5985635cab2" title="One&#45;line description of the route search used (written to statistics.txt)." alt="" coords="5,87,153,127"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="187,128,153,122,154,117,188,123"/>
+<area shape="rect" id="Node000006" href="$namespacesrc_1_1search.html#a46139210f51bbd6174b1816b77d388eb" title="Whether the data satisfies the premise of the straight&#45;line heuristic." alt="" coords="5,151,153,191"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="188,156,154,162,153,156,187,151"/>
+</map>

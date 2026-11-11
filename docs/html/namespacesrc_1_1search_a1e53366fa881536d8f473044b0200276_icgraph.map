@@ -1,0 +1,7 @@
+<map id="src.search.max_speed" name="src.search.max_speed">
+<area shape="rect" id="Node000001" title="The fastest road speed in this scenario (30 m/s in the provided ones)." alt="" coords="196,35,363,60"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#aea511f208c8dba8a4ec260344b83c06a" title="Fastest route with A* (falls back to UCS if the heuristic premise fails on the data)." alt="" coords="14,5,139,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,36,139,30,140,24,183,31"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1search.html#a6fd3e95a2388cfe16ee2b876e44e5b32" title="Straight&#45;line distance / max_speed: a lower bound on the travel time from a to b." alt="" coords="5,55,148,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,63,149,68,148,63,182,58"/>
+</map>

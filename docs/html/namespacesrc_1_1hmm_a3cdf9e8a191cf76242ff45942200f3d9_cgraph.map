@@ -1,0 +1,5 @@
+<map id="src.hmm.stationary_distribution" name="src.hmm.stationary_distribution">
+<area shape="rect" id="Node000001" title="Stationary distribution π with π = π · T." alt="" coords="5,5,155,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1hmm.html#a89cecdfc9e0f364485dbbe8bf1711e8f" title="Time elapse only: B&#39;(y) = Σ_x B(x) · P(y | x), repeated steps times." alt="" coords="203,13,331,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,189,23,189,28,155,28"/>
+</map>

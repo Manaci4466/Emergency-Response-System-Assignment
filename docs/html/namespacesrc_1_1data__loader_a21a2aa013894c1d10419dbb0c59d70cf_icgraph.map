@@ -1,0 +1,13 @@
+<map id="src.data_loader._read_json" name="src.data_loader._read_json">
+<area shape="rect" id="Node000001" title="Read a JSON file." alt="" coords="408,77,603,102"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a08478c0ba3ed7de3f96a56f4b2bccae1" title="Load city_graph.json." alt="" coords="207,5,360,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="446,75,353,48,354,43,448,70"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1data__loader.html#ac9551849c3b9cc671f1953ab065b1645" title="Load road_probabilities.json into a RoadModel and check every row sums to 1." alt="" coords="207,69,360,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="394,92,360,92,360,87,394,87"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1data__loader.html#a7617da1e5e1b8c2c1da3e62de2418cee" title="Load traffic_probabilities.json into a TrafficModel and check every row sums to 1." alt="" coords="207,133,360,173"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="448,109,354,136,353,131,446,103"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1data__loader.html#a453954d51f9632a8a87faeccff2c60c0" title="Load and validate a complete scenario folder." alt="" coords="5,69,159,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="207,52,146,72,145,67,206,47"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="193,92,159,92,159,87,193,87"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="206,132,145,112,146,107,207,127"/>
+</map>

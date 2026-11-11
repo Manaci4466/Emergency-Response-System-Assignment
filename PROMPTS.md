@@ -537,7 +537,22 @@ Doxygen line to CLAUDE.md, committed the documented code and the Doxyfile, merge
 Generating the HTML needs Doxygen: running a downloaded Doxygen binary was blocked by Claude Code's
 permission system (code from outside the project), so the HTML is generated after I install Doxygen with
 apt.
-**What I did:** *(fill in)*
+**What I did:** *accepted*
+
+---
+
+## Prompt 23 (Generate the Doxygen HTML) (2026-11-11, Claude Code)
+
+> now create the docs. I just installed Doxygen
+
+**Response:** ran `doxygen Doxyfile` (Doxygen 1.9.8): the first run gave 5 warnings, fixed without changing
+code: `<name>` in run.py's usage text (read as an HTML tag) became NAME; README links to files outside the
+Doxygen input. Adding PROMPTS.md and Scenarios/README.md as input caused new warnings (verbatim prompts
+contain `<scenario>` and `@param`; a second README counts as a second main page), so only report.md was
+added and the README links to PROMPTS.md and Scenarios/README.md became full GitHub links. Final run:
+0 warnings, docs/html (443 files, about 4 MB, README as main page, call graphs). Checked two pages
+visually. Committed docs/ and pushed.
+**What I did:** accepted.
 
 ---
 

@@ -1,0 +1,10 @@
+<map id="src.experiments.stationary_multiplier" name="src.experiments.stationary_multiplier">
+<area shape="rect" id="Node000001" title="Expected traffic multiplier under THIS scenario&#39;s stationary distribution." alt="" coords="695,22,892,62"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#ab35f9adcd0881282c67fc08c42c0e7f2" title="Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier." alt="" coords="440,22,647,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="681,45,647,45,647,39,681,39"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#a8c278366eba68101ec9598fea0adba39" title="Run all experiments." alt="" coords="217,29,392,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="426,45,392,45,392,39,426,39"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1experiments.html#a7931f2deafb95f729d1e1e3463447b72" title="Entry point of python &#45;m src.experiments: write results/experiments.md and print it." alt="" coords="5,29,169,55"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="204,45,170,45,170,39,204,39"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="126,20,115,11,87,8,64,10,52,15,50,20,56,28,52,31,44,21,48,11,63,5,87,3,117,6,129,15"/>
+</map>

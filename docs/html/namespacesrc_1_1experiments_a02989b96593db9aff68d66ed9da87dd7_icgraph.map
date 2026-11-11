@@ -1,0 +1,5 @@
+<map id="src.experiments.usable_roads" name="src.experiments.usable_roads">
+<area shape="rect" id="Node000001" title="Roads that are usable at a given tau." alt="" coords="205,5,380,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#a6c57d0106fc2ebf4f787e87cde7456c8" title="Which roads open or close compared with a reference tau, grouped by P(Blocked)." alt="" coords="5,5,157,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,28,158,28,158,23,192,23"/>
+</map>

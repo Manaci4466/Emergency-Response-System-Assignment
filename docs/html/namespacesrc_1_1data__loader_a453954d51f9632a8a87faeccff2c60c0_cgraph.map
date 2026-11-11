@@ -1,0 +1,33 @@
+<map id="src.data_loader.load_scenario" name="src.data_loader.load_scenario">
+<area shape="rect" id="Node000001" title="Load and validate a complete scenario folder." alt="" coords="5,197,159,237"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1data__loader.html#a08478c0ba3ed7de3f96a56f4b2bccae1" title="Load city_graph.json." alt="" coords="209,5,363,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,195,136,128,168,89,205,55,213,50,216,54,208,59,172,93,140,131,97,198"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1data__loader.html#af238554b3bffe3a5d534c0909d83b47c" title="Load incidents.csv." alt="" coords="209,261,363,301"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="147,235,209,255,208,260,146,240"/>
+<area shape="rect" id="Node000006" href="$namespacesrc_1_1data__loader.html#a256091ce1aaa7227bc4fd0c3409225cd" title="Load road_reports.csv, grouped per DIRECTED road." alt="" coords="209,325,363,365"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="107,235,152,273,208,311,219,317,216,322,205,316,149,277,103,239"/>
+<area shape="rect" id="Node000007" href="$namespacesrc_1_1data__loader.html#ae4bad046f5336b7548757aa576204ff0" title="Load responders.csv; capabilities are split on &#39;;&#39;." alt="" coords="209,389,363,429"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="97,236,140,304,172,342,208,375,216,380,213,385,205,379,168,345,136,307,92,239"/>
+<area shape="rect" id="Node000008" href="$namespacesrc_1_1data__loader.html#ac9551849c3b9cc671f1953ab065b1645" title="Load road_probabilities.json into a RoadModel and check every row sums to 1." alt="" coords="209,133,363,173"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="146,195,208,175,209,180,147,200"/>
+<area shape="rect" id="Node000011" href="$namespacesrc_1_1data__loader.html#a7617da1e5e1b8c2c1da3e62de2418cee" title="Load traffic_probabilities.json into a TrafficModel and check every row sums to 1." alt="" coords="209,69,363,109"/>
+<area shape="poly" id="edge14_Node000001_Node000011" title=" " alt="" coords="103,195,149,158,205,119,216,113,219,118,208,124,152,162,107,199"/>
+<area shape="rect" id="Node000012" href="$namespacesrc_1_1data__loader.html#a708a9c3c0b67cd7094cebcfb242b7cf1" title="Load observed_traffic.csv: one observation sequence PER DIRECTED ROAD." alt="" coords="207,197,365,237"/>
+<area shape="poly" id="edge18_Node000001_Node000012" title=" " alt="" coords="159,215,193,215,193,220,159,220"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1data__loader.html#a21a2aa013894c1d10419dbb0c59d70cf" title="Read a JSON file." alt="" coords="415,26,609,51"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="363,27,401,29,401,35,363,33"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1data__loader.html#a4f1b189b08cebd1e33e0d8c9654b9ad9" title="Read a CSV file into a list of dicts, skipping blank lines." alt="" coords="417,301,607,326"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="363,290,409,296,408,301,363,295"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="363,332,408,325,409,331,363,337"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="336,387,364,375,469,329,471,334,366,380,338,392"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="338,131,364,119,477,56,480,61,367,124,340,136"/>
+<area shape="rect" id="Node000009" href="$namespacesrc_1_1data__loader.html#adf26e20d92f4239a3f26bedebd7bf1d9" title="Check that every row of a conditional probability table sums to 1." alt="" coords="413,127,611,153"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="363,146,399,144,400,149,363,151"/>
+<area shape="rect" id="Node000010" href="$namespacesrc_1_1data__loader.html#a59d66425bc50cbd03f5a2e07c554707c" title="Check that a probability distribution sums to 1." alt="" coords="659,120,829,160"/>
+<area shape="poly" id="edge12_Node000008_Node000010" title=" " alt="" coords="363,159,480,166,546,166,610,163,645,158,645,164,611,168,546,172,480,171,363,164"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="611,137,645,137,645,143,611,143"/>
+<area shape="poly" id="edge17_Node000011_Node000003" title=" " alt="" coords="362,70,441,52,442,57,364,75"/>
+<area shape="poly" id="edge15_Node000011_Node000009" title=" " alt="" coords="364,104,442,122,441,127,362,109"/>
+<area shape="poly" id="edge16_Node000011_Node000010" title=" " alt="" coords="363,90,480,98,611,112,645,117,645,123,610,117,479,104,363,96"/>
+<area shape="poly" id="edge19_Node000012_Node000005" title=" " alt="" coords="338,235,366,247,471,293,469,297,364,252,336,240"/>
+</map>

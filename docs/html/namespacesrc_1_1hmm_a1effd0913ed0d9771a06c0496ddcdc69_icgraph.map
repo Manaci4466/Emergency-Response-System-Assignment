@@ -1,0 +1,7 @@
+<map id="src.hmm.observe" name="src.hmm.observe">
+<area shape="rect" id="Node000001" title="Observation step: weight the belief by P(e | x) and normalise." alt="" coords="407,5,541,31"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1hmm.html#a9abd393219063649e61aa9509c41f9d4" title="Forward algorithm (filtering) over one observation sequence." alt="" coords="225,5,359,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="393,21,359,21,359,15,393,15"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1hmm.html#a1066b80bdc1c76dd7714c99edcf4d665" title="Traffic &quot;now&quot; (t = 0) for every road with observations (design decision 3)." alt="" coords="5,5,177,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="212,21,177,21,177,15,212,15"/>
+</map>

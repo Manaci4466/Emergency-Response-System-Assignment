@@ -1,0 +1,12 @@
+<map id="src.search.astar" name="src.search.astar">
+<area shape="rect" id="Node000001" title="Fastest route with A* (falls back to UCS if the heuristic premise fails on the data)." alt="" coords="5,56,131,81"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1search.html#a39dbfb1c1f8eaeddede3f80662c7ccb6" title="Best&#45;first graph search with a closed set; A* and UCS differ only in h." alt="" coords="407,54,565,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,53,129,32,178,15,228,6,269,3,309,6,359,15,407,28,449,46,447,51,405,33,358,20,308,11,268,8,229,11,179,20,131,37,91,58"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1search.html#a0bce4d4b1a2d0bdf0fa48455551d30ba" title="Euclidean distance between two nodes, in metres." alt="" coords="179,30,359,56"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="131,58,165,53,166,59,131,63"/>
+<area shape="rect" id="Node000004" href="$namespacesrc_1_1search.html#a1e53366fa881536d8f473044b0200276" title="The fastest road speed in this scenario (30 m/s in the provided ones)." alt="" coords="185,80,352,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,73,172,78,171,83,131,78"/>
+<area shape="rect" id="Node000005" href="$namespacesrc_1_1search.html#a45f1c538ea30cd9c7c56f6a68f9a8d5a" title="Uniform&#45;cost search = A* with h = 0 (the reference to check A* against)." alt="" coords="211,129,326,154"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="97,79,180,114,206,122,204,127,178,119,95,83"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="317,126,358,114,441,82,443,87,360,119,318,131"/>
+</map>

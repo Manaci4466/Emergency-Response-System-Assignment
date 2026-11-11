@@ -1,0 +1,7 @@
+<map id="src.experiments.unobserved_traffic_rows" name="src.experiments.unobserved_traffic_rows">
+<area shape="rect" id="Node000001" title="Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier." alt="" coords="5,27,212,67"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#a76ba2e3ef92c6502a9645067e57518d0" title="Metrics of a simulation result (reuses statistics.compute_statistics)." alt="" coords="269,5,449,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,33,255,27,255,33,212,38"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#a65056a4bb6dbf140d9a0267c9e5dc2a4" title="Expected traffic multiplier under THIS scenario&#39;s stationary distribution." alt="" coords="260,55,457,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,56,247,60,246,65,212,62"/>
+</map>

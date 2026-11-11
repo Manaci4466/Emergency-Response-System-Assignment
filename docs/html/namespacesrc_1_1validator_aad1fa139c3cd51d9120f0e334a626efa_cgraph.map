@@ -1,0 +1,7 @@
+<map id="src.validator.check_statistics" name="src.validator.check_statistics">
+<area shape="rect" id="Node000001" title="Compare the four lines of statistics.txt with values recomputed from plan.json." alt="" coords="5,5,149,45"/>
+<area shape="rect" id="Node000002" href="$namespacesrc_1_1validator.html#a367a5c05af793acdd77fbb4ed0021700" title="The four required statistics recomputed from plan.json alone." alt="" coords="197,5,332,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,23,184,23,184,28,150,28"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1validator.html#a8a6f8283762b701a127cacba6fc5834d" title="Expected travel time = Σ edge costs along the path." alt="" coords="380,13,561,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="332,23,366,23,366,28,332,28"/>
+</map>
