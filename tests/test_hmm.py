@@ -29,6 +29,24 @@ def test_umbrella_exact() -> None:
     assert likelihood == F(15, 128)
 
 
+def test_initial_is_p_x1_no_transition_before_first_observation() -> None:
+    # Convention: model.initial = P(X1), the state that EMITS observation 1, so there is no
+    # time-elapse step before it. With ONE observation "Low":
+    #   B(x) ∝ P(Low | x) · P(X1 = x) = (0.85·0.6, 0.10·0.3, 0.02·0.1) = (0.51, 0.03, 0.002)
+    #   normalised by 0.542 -> (0.941, 0.0554, 0.0037)
+    # The off-by-one bug (predict before observation 1) would give (0.925, 0.069, 0.005).
+    # Why the other tests cannot catch that bug:
+    #   - umbrella: its prior (1/2, 1/2) is the stationary distribution of its symmetric T,
+    #     so one extra transition changes nothing;
+    #   - scenario data: after ~10 observations the start is forgotten (the HMM converges),
+    #     the difference on N4->H1 is ~1e-7, far below the 1e-3 tolerance.
+    # Only a single observation keeps the starting belief visible.
+    model = load_scenario(SCENARIOS / "small").traffic_model
+    belief, likelihood = forward(model, ["Low"])
+    assert belief == pytest.approx({"Low": 0.941, "Medium": 0.0554, "High": 0.0037}, abs=1e-4)
+    assert likelihood == pytest.approx(0.542)  # = P(E1 = Low) = Σ_x P(Low|x) P(X1=x)
+
+
 @pytest.mark.parametrize(
     "name, edge, p_high",
     [("small", ("N4", "H1"), 0.548), ("large", ("N16", "N17"), 0.704)],
@@ -43,8 +61,8 @@ def test_prediction_converges_to_stationary_distribution() -> None:
     from_low = predict(model, {"Low": 1.0, "Medium": 0.0, "High": 0.0}, steps=50)
     from_high = predict(model, {"Low": 0.0, "Medium": 0.0, "High": 1.0}, steps=50)
     print("\nstationary distribution:", {k: round(v, 4) for k, v in from_low.items()})
-    # The start no longer matters. Convergence is geometric (2nd eigenvalue of T ≈ 0.7,
-    # 0.7^50 ≈ 2e-8), so 1e-6 is a safe tolerance after 50 steps; 1e-9 would not be.
+    # The start no longer matters. Convergence is geometric: the 2nd eigenvalue of T is 0.742,
+    # so the error after 50 steps is about 0.742^50 ≈ 3e-7. 1e-6 is safe; 1e-9 would not be.
     assert from_low == pytest.approx(from_high, abs=1e-6)
     stationary = {"Low": F(45, 127), "Medium": F(49, 127), "High": F(33, 127)}
     assert from_low == pytest.approx({k: float(v) for k, v in stationary.items()}, abs=1e-6)
