@@ -107,7 +107,7 @@ blocked in 24.9% of the worlds (analytically 1 − 0.865² = 25.2%).
 
 <!-- Draft written from my reflections during the project; edit freely, it is my reflection. -->
 
-**Limitations.** Every number in this report is an *expected* value under my own model. A "valid" plan
+**Limitations.** The following limitations became clear in certain steps of the project and reflect my considerations throughout the project. Every number in this report is an *expected* value under my own model. A "valid" plan
 only respects the hard constraints under my beliefs: the Monte Carlo replay shows that at least one
 planned route is blocked in 64–97% of the sampled worlds, and the route to a Critical incident in small
 in one world out of four. The beliefs are computed once at t = 0 and used for the whole simulation,
@@ -122,7 +122,7 @@ wrong scenario, and two wrong predictions from my own reviewer. I caught each on
 treated every claim as something to test: hand calculations, independent scripts and mutation testing.
 The main lesson is that a passing test is only evidence if it can fail.
 
-**Next steps.** (1) Rolling-horizon re-planning: re-solve when a new incident arrives and compare the
+**Next steps.** The next steps were all suggestions from Claude code, which seemed reasonable after reading the reasoning behind them. (1) Rolling-horizon re-planning: re-solve when a new incident arrives and compare the
 weighted missed and the Monte Carlo deadlines met on all three scenarios. (2) Risk-aware routing that
 penalises P(Blocked) instead of a hard τ, measured by the Monte Carlo P(route blocked) and deadlines
 met. (3) Time-varying traffic, which needs a time unit for the observations, measured the same way.
