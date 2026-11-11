@@ -95,6 +95,9 @@ emission tables), added pyproject.toml, requirements.txt and the weather check +
 comment, updated CLAUDE.md. Plain `pytest`: 6 passed.
 **What I did:** **modified** the LLM's phase 1 code after reviewing it: its orientation test could
 never fail (diagonal entry + symmetric table), so it proved nothing. Lesson: check that a test can fail.
+Phase 1 fixes: gave 5 fixes from my review. All applied; it also added HMM orientation checks on its
+own initiative (transition Low→Medium 0.18, flipped 0.15; emission Low→Medium 0.14, flipped 0.10)
+→ **accepted** after checking the values in the JSON.
 
 ---
 
