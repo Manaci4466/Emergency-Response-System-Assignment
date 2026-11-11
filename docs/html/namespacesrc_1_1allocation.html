@@ -98,7 +98,7 @@ $(document).ready(function(){initNavTree('namespacesrc_1_1allocation.html',''); 
 </div><!--header-->
 <div class="contents">
 
-<p>Phase 5: responder allocation as a CSP, solved per round (practicum 1: backtracking, MRV, forward checking) with branch and bound on a lexicographic objective.  
+<p>Phase 5: responder allocation as a CSP, solved per round (Notes 2, practicum 1: backtracking, MRV, forward checking) with branch and bound on a lexicographic objective.  
 <a href="namespacesrc_1_1allocation.html#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
@@ -146,7 +146,7 @@ Variables</h2></td></tr>
 <tr class="separator:a350e0302ef848cd09fa06b95690aa348"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Phase 5: responder allocation as a CSP, solved per round (practicum 1: backtracking, MRV, forward checking) with branch and bound on a lexicographic objective. </p>
+<div class="textblock"><p>Phase 5: responder allocation as a CSP, solved per round (Notes 2, practicum 1: backtracking, MRV, forward checking) with branch and bound on a lexicographic objective. </p>
 <p>One round = the incidents that become known at time <code>now</code> (no clairvoyance).</p><ul>
 <li>Variables : this round's incidents.</li>
 <li>Domains : responders with the required capability that can reach the incident (unary constraints, filtered first; empty domain -&gt; unhandled).</li>
@@ -332,7 +332,7 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Solve ONE round with backtracking + MRV + forward checking + branch and bound. </p>
-<p>Forward checking recomputes every remaining incident's ON-TIME set after each assignment. An empty set does not fail the branch (deadlines are soft): its weight is added to a lower bound, and the branch is pruned when (bound, response time so far) ≥ the best plan found. The bound is valid because extra jobs only make a responder free later and elsewhere, which by the triangle inequality of shortest paths never makes it arrive earlier. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Forward checking (Notes 2), adapted to soft deadlines: instead of pruning domains, it recomputes every remaining incident's ON-TIME set after each assignment. An empty set does not fail the branch: its weight is added to a lower bound, and the branch is pruned when (bound, response time so far) ≥ the best plan found. The bound is valid because extra jobs only make a responder free later and elsewhere, which by the triangle inequality of shortest paths never makes it arrive earlier. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">scenario</td><td>The scenario. </td></tr>
     <tr><td class="paramname">costs</td><td>Edge costs. </td></tr>

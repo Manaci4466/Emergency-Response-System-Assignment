@@ -1,8 +1,8 @@
 """@brief Phase 1: load one scenario folder into typed, validated dataclasses.
 
 No AI happens here; this is the problem formulation that the later phases use:
-  - graph (nodes + DIRECTED roads)               -> search (A*), practicum 1
-  - incidents (variables) / responders (domains) -> CSP allocation, practicum 1
+  - graph (nodes + DIRECTED roads)               -> search (A*), Notes 1, practicum 1
+  - incidents (variables) / responders (domains) -> CSP allocation, Notes 2, practicum 1
   - road_probabilities.json (CPTs)               -> Bayes net, Notes 6
   - traffic_probabilities.json (HMM tables)      -> forward algorithm, Notes 8
 

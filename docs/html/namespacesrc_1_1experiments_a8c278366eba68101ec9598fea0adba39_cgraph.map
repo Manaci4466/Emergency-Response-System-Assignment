@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Run all experiments." alt="" coords="5,108,180,133"/>
 <area shape="rect" id="Node000002" href="$namespacesrc_1_1experiments.html#a76ba2e3ef92c6502a9645067e57518d0" title="Metrics of a simulation result (reuses statistics.compute_statistics)." alt="" coords="494,108,674,133"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,118,481,118,481,123,180,123"/>
-<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (Notes 6, sampling)." alt="" coords="245,43,418,83"/>
+<area shape="rect" id="Node000003" href="$namespacesrc_1_1experiments.html#af12e47089ce7837fbfc511e45accc7d4" title="Replay a fixed plan in n sampled worlds (prior sampling, Notes 6)." alt="" coords="245,43,418,83"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,105,234,84,235,89,147,111"/>
 <area shape="rect" id="Node000006" href="$namespacesrc_1_1experiments.html#ab35f9adcd0881282c67fc08c42c0e7f2" title="Experiment 3: each scenario with unobserved traffic ×1.0 and ×its own stationary multiplier." alt="" coords="228,158,435,198"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="147,131,235,152,234,157,146,136"/>

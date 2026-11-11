@@ -29,18 +29,18 @@ needs the distribution of the *current* level, not the most likely history. The 
 filtered belief plus one prediction step, converted into an expected multiplier (Low 1.0, Medium 1.25,
 High 1.5; roads without observations ×1.0).
 
-**Cost model and A*** (`cost_model.py`, `search.py`, practicum 1). Expected time = distance/speed ×
+**Cost model and A*** (`cost_model.py`, `search.py`, Notes 1, practicum 1). Expected time = distance/speed ×
 status multiplier (P(O)·1 + P(C)·1.5)/(P(O)+P(C)) × traffic multiplier; a road is unusable if
 P(Blocked) ≥ τ = 0.5. A\* (graph search, closed set) uses h = straight-line distance / fastest road
 speed: admissible because every road is at least as long as the straight line and every multiplier
 is ≥ 1, and consistent by the triangle inequality, so the closed set never discards a better path.
 The program checks the first condition on each scenario and otherwise uses h = 0 (uniform-cost search).
 
-**CSP allocation** (`allocation.py`, practicum 1). Each round (the incidents with the same timestamp)
+**CSP allocation** (`allocation.py`, Notes 2, practicum 1). Each round (the incidents with the same timestamp)
 is a CSP: variables = incidents, domains = capable responders that can reach them. A busy responder is
 queued and starts its next job from its last incident once that job ends. Deadlines
-are soft (late help beats no help): an incident with no on-time responder left does not fail the branch,
-it adds its priority weight (Critical 8, High 4, Medium 2, Low 1) to a lower bound. Branch and bound
+are soft (late help beats no help), so forward checking is adapted: an incident with no on-time
+responder left does not fail the branch, it adds its priority weight (Critical 8, High 4, Medium 2, Low 1) to a lower bound. Branch and bound
 minimises first the priority-weighted lateness and then the total response time. MRV picks the incident
 with the fewest on-time responders. Because the assignment order also fixes the job order of a shared
 responder, MRV here changes the *answer*, not only the speed: without it, R10 in medium handles I2 before
@@ -102,7 +102,7 @@ are missed by only 1–5 s, so they depend on the model's assumptions.
 
 The results depend more on the modelling assumptions than on the algorithm: medium falls from 91.7% to
 33.3% when its unobserved roads get the stationary traffic multiplier, because some of its deadlines
-are only 20 s after the incident appears. **Monte Carlo** sampling (Notes 6) draws 5000 possible worlds,
+are only 20 s after the incident appears. **Monte Carlo** sampling (prior sampling, Notes 6) draws 5000 possible worlds,
 sampling each road's true status and traffic level from our beliefs, and replays the fixed plan in each. Raising τ to 0.6 doubles small's *planned* deadlines
 met, but the sampled value drops slightly (36.2% → 35.1%), because the extra roads are blocked in 52.7%
 of the worlds; this supports τ = 0.5. R1's route to the Critical I2 crosses two unreported roads and is

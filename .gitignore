@@ -3,4 +3,5 @@ __pycache__/
 .pytest_cache/
 output/
 .idea
-
+# course notes: local reference only, never in the repo
+Notes *.pdf
