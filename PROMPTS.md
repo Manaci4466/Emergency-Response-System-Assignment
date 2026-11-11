@@ -124,6 +124,71 @@ large N16↔N5 (0.527). Also tested that every unreported road in all three scen
 ---
 
 
+## Prompt 8 (Phase 2 fixes + Phase 3 HMM): traffic model (2026-11-11, Claude Code)
+
+> Phase 3: HMM traffic model (src/hmm.py). First apply the 3 small fixes: sharper docstring in bayes.py (S is each report's ONLY parent, no edges between reports), compute the expected prior per scenario in test_every_road_gets_a_distribution, and validate reported_status and weather values in the loader.
+>
+> Then explain in max 5 lines: hidden state vs evidence, the two steps of the forward algorithm (time elapse, then observe + normalise), why we normalise at every step, and why forward and not Viterbi.
+> Implement:
+> - forward(model, observations) -> (belief over X_n after the last observation, likelihood P(e_1..e_n)). Convention: model.initial = P(X1), the state that emits observation 1 (no transition before it). Normalise after every step; the likelihood is the product of the normalising constants. Must also work with fractions.Fraction.
+> - predict(model, belief, steps=1): time-elapse only.
+> - traffic_beliefs(scenario) -> dict[Edge, dict[str, float]]: forward + one predict step, ONLY for roads with observations.
+> - expected_multiplier(belief, multipliers={"Low": 1.0, "Medium": 1.25, "High": 1.5}).
+> Tests:
+> - practicum 2 Q5 umbrella HMM with Fraction: P(R1)=1/2, T(R->R)=T(D->D)=3/4, E(+|R)=E(-|D)=3/4, observations +,+,- -> P(Rain3 | obs) = 2/5 and likelihood = 15/128, both exact
+> - small N4->H1: predicted P(High) ≈ 0.548; large N16->N17: predicted P(High) ≈ 0.704
+> - predicting 50 steps converges to a fixed distribution (print it: the stationary distribution)
+> - every belief sums to 1
+
+(The 3 fixes came from my review of phase 2, done with Claude chat.)
+
+**Response:** Phase 2 fixes applied, plus a load-time check on traffic levels (its own addition);
+3 typo tests. src/hmm.py (`predict`, `observe`, `forward`, `traffic_beliefs`, `expected_multiplier`)
+and tests/test_hmm.py: umbrella 2/5 and 15/128 exact; N4→H1 0.548, N16→N17 0.704; stationary
+distribution (45, 49, 33)/127. Its first stationary test (tolerance 10⁻⁹ after 50 steps) failed;
+it explained the geometric convergence (≈0.7⁵⁰ ≈ 2·10⁻⁸), loosened to 10⁻⁶ and added an exact
+Fraction check π·T = π. 24 tests pass.
+**What I did:** Modified. Checked 2/5, 15/128 and π·T = π for (45, 49, 33)/127 by hand. Mutation-tested
+four typical HMM bugs: transition table flipped (6 tests fail), no normalisation (6 fail), no
+prediction step to t = 0 (2 fail), transition before observation 1 (0 fail). Mutation testing showed
+the P(X₁) convention was untested (both existing tests are blind to it); added a one-observation
+test. Corrected the LLM's eigenvalue claim (0.742, not 0.7). See Prompt 9.
+
+---
+
+
+## Prompt 9 (Phase 3 fixes + Phase 4 cost model + A*) (2026-11-11, Claude Code)
+
+> Phase 3 fixes first:
+> 1. Add a test pinning the convention initial = P(X1): small model, ONE observation "Low" must give B ∝ emission·initial = (0.941, 0.0554, 0.0037). Explain in a comment why the existing tests cannot catch a transition applied before observation 1 (umbrella prior is stationary for its symmetric T; 10 observations wash out the start). Prove it: temporarily apply the transition before observation 1, show only the new test fails, then revert.
+> 2. Fix the comment: the 2nd eigenvalue of T is 0.742, so 0.742^50 ≈ 3e-7.
+> 3. In report.md replace the last HMM sentence with: "Predicting further ahead converges to the stationary distribution (45, 49, 33)/127, so beliefs lose their road-specific information. Because observation_nr has no time unit, the t = 0 belief is used for the whole simulation, which is likely overconfident for late incidents."
+> Commit, merge phase-2-bayes and phase-3-hmm into main, push.
+>
+> Phase 4: cost model + A* (src/cost_model.py, src/search.py) on a new branch.
+> Explain in max 5 lines: f = g + h, why h = straight-line distance / 30 m/s is admissible AND consistent here, and why consistency matters for graph search with a closed set.
+> cost_model.py: edge_costs(scenario, tau=0.5, unobserved_traffic=1.0) -> per directed road: base = distance/speed, p_blocked, status_mult = (P(O)·1 + P(C)·1.5) / (P(O)+P(C)), traffic_mult (expected_multiplier, or unobserved_traffic without observations), cost = base·status_mult·traffic_mult, or None if p_blocked >= tau. Keep the parts so they can be printed.
+> search.py: astar(scenario, costs, start, goal) -> (path, cost, expanded) or None. Graph search with closed set, ties broken alphabetically; start == goal -> ([start], 0). ucs = the same with h = 0.
+> Tests:
+> - every road in all 3 scenarios: distance >= straight-line distance (print the smallest ratio)
+> - consistency: for every goal and every usable road (u,v): cost(u,v) >= h(u) - h(v)
+> - A* cost == UCS cost for EVERY node pair in all 3 scenarios; A* never expands more nodes than UCS (print totals)
+> - small: H1<->N3 unusable (P(Blocked) 0.998); N1->N2 unusable at tau 0.5, usable at tau 0.6
+> - a tiny hand-made graph where the shortest path in metres is NOT the fastest (main 30 m/s vs secondary 15 m/s): A* picks the fastest
+> - unreachable goal -> None
+
+(Written after my own review of phase 3 in Claude chat, including the mutation testing above.)
+
+**Response (phase 3 fixes):** verified the numbers first (eigenvalues 1, 0.742, 0.508; one-observation
+belief 0.941 / 0.0554 / 0.0037, off-by-one 0.925 / 0.069 / 0.005). Added the convention test with the
+explanation comment; injected the bug → only the new test failed (1 failed, 24 passed); reverted →
+25 passed. Fixed the eigenvalue comment and the report sentence.
+**Response (phase 4):** *(see below / fill in after review)*
+**What I did:** *(fill in after reviewing phase 4)*
+
+---
+
+
 
 <!-- Template for new entries:
 

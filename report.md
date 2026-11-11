@@ -64,6 +64,18 @@ prior marginal (Open 0.685, Congested 0.18, Blocked 0.135). For example, N1→N2
 (Rain; reports Blocked, Blocked, Congested) gets P(Blocked) = 0.527: just above τ = 0.5, so this road
 is avoided while its reverse direction (all reports Congested) stays usable.
 
+**HMM traffic model (`hmm.py`, Notes 8).** Traffic on each directed road is a hidden Markov model:
+the hidden state is the true traffic level, the evidence the observed level. The forward algorithm
+(`forward`) alternates a time-elapse step through the transition model with an observation step that
+weights by the emission model and normalises; normalising every step prevents underflow, and the
+product of the normalisers is the likelihood P(e₁..eₙ). We filter rather than run Viterbi because
+planning needs the distribution of the *current* traffic level, not the most likely history. Traffic
+"now" is the filtered belief plus one prediction step, turned into an expected multiplier
+(Low 1.0, Medium 1.25, High 1.5); e.g. small N4→H1 has P(High) = 0.548, multiplier 1.36. Predicting
+further ahead converges to the stationary distribution (45, 49, 33)/127, so beliefs lose their
+road-specific information. Because observation_nr has no time unit, the t = 0 belief is used for the
+whole simulation, which is likely overconfident for late incidents.
+
 ## LLM collaboration
 
 <!-- BUDGET: ~0.6 page (~300 words).
@@ -89,6 +101,8 @@ is avoided while its reverse direction (all reports Congested) stays usable.
 | Asked | LLM answered | What I did | Why |
 |---|---|---|---|
 | Phase 1: write the data loader and its test (Appendix A, Prompt 5) | Loader + 5 passing tests; CPT orientation checked with `Police[Blocked][Blocked]` and a Citizen entry | **Modified**: replaced with an asymmetric entry (`Police[Open][Congested]` = 0.06, flipped 0.08), added a weather-consistency check (Prompt 6) | A diagonal entry and a symmetric table give the same value either way round, so that test could never fail |
+| Phase 2 review: three improvements from my own review (Prompt 8) | Applied | **Modified**: sharper independence docstring, expected prior computed per scenario, unknown weather/status/traffic values rejected at load time | The all-roads test only passed because the scenarios share tables; a typo like "Blockd" would have crashed deep inside `bayes.py` |
+| Phase 3: HMM + stationary-distribution test (Prompt 8) | Its first test demanded 10⁻⁹ after 50 predict steps and **failed**; fixed with tolerance 10⁻⁶, justified by "2nd eigenvalue ≈ 0.7" | **Modified** (Prompt 9): mutation testing (4 typical HMM bugs) showed a transition before observation 1 passed every test, so I added a one-observation test; corrected the eigenvalue to 0.742 (0.742⁵⁰ ≈ 3·10⁻⁷) | The HMM forgets its start (umbrella prior is already stationary; 10 observations wash it out), so the P(X₁) convention needed a targeted test; a plausible LLM number did not check out |
 
 ## Testing & results
 
@@ -114,6 +128,11 @@ is avoided while its reverse direction (all reports Congested) stays usable.
 | Bayes hand check, small N1→N2 (Rain; B, B, C) | O 0.014, C 0.459, B 0.527 | pass |
 | Bayes, no reports + Clear / no weather | P(S\|Clear) / prior marginal 0.685, 0.18, 0.135 | pass |
 | Bayes, one source missing; every road in all scenarios | matches hand calculation; each sums to 1 | pass |
+| Loader rejects unknown weather / status / traffic level | `ValueError` at load time | pass |
+| HMM umbrella example (practicum 2 Q5, exact `Fraction`) | P(R₃\|+,+,−) = 2/5, likelihood 15/128 | pass |
+| HMM predicted P(High): small N4→H1, large N16→N17 | 0.548, 0.704 | pass |
+| HMM stationary distribution | (45, 49, 33)/127, exact fixed point π·T = π | pass |
+| HMM convention initial = P(X₁): one observation "Low" | (0.941, 0.0554, 0.0037); off-by-one bug gives (0.925, 0.069, 0.005) and only this test fails | pass |
 
 ## Critical reflection
 
